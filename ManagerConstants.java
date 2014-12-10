@@ -7,6 +7,7 @@ import java.util.Map;
  */
 
 //test comment to ensure git is working correctly so far
+//second test comment to try coordinating git... again
 
 public final class ManagerConstants {
 
