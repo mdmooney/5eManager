@@ -2,6 +2,8 @@
  * Created by Michael on 19/11/2014.
  */
 
+ //changing something else for git tests for a change
+ 
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.text.html.HTMLDocument;
