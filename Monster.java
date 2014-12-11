@@ -20,7 +20,7 @@ import java.util.Random;
 @XmlType(propOrder = {"name", "type", "ac", "hp", "hitDiceArray", "speed", "challenge", "legActionCount", "scores", "saves", "skills", "vuln", "resist", "immu", "conImmu", "sense", "lang", "traitList", "actionList", "legActionList"})
 @XmlSeeAlso({Action.class, Attack.class, Reaction.class})
 
-public class Monster implements Comparable<Monster>, Fightable {
+public class Monster implements Comparable<Monster>, Fightable, LibraryMember {
     private String name;
     private String type;
     private String saves;

@@ -1,14 +1,14 @@
 import javax.swing.*;
 
 /**
- * Created by Michael on 10/12/2014.
+ * Created by Michael on 11/12/2014.
  */
-public class SpellEditWindowTester {
+public class PickSpellTester {
     public static void main(String[] args) {
         JDialog frame = new JDialog();
         frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-        SpellEditWindow sew = new SpellEditWindow(frame);
+        PickSpell ps = new PickSpell();
         frame.setVisible(true);
-        sew.open();
+        ps.open(frame);
     }
 }

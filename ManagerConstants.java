@@ -18,8 +18,8 @@ public final class ManagerConstants {
     public static final String MONSTER_TEMP_XML = shortPath + "/monster.temp";
     public static final String PLAYER_XML = shortPath + "/player.5em";
     public static final String PLAYER_TEMP_XML = shortPath + "/player.temp";
-
-    //private static final String SPELL_XML = "./spells.5em"; todo: implement spell DB before uncommenting this line
+    public static final String SPELL_XML = "./spells.5em";
+    public static final String SPELL_TEMP_XML = "./spells.temp";
 
     public static final String[] DICE_TYPES = {"d4", "d6", "d8", "d10", "d12"};
 

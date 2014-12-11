@@ -2,44 +2,33 @@
  * Created by Michael on 09/11/2014.
  */
 
-import com.sun.xml.internal.txw2.output.IndentingXMLStreamWriter;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.stream.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.*;
-import java.nio.file.Files;
 import java.util.*;
 import java.util.List;
 
-import static javax.xml.stream.XMLStreamConstants.CHARACTERS;
-import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
-
 public class PickMonster {
+    private LibraryManager libMan = new LibraryManager(LibraryManager.LibType.MONSTER);
     private ArrayList<Monster> addingList;
     private ArrayList<Participant> participants;
-    private ArrayList<StatLibEntry> entryList;
+    private ArrayList<LibEntry> entryList;
     private JList libList;
     private JList encList;
     private JDialog frame;
     private JPanel panel;
     private JTextField searchField = new JTextField(18);
     private final Dimension LIST_DIMENSION = new Dimension(280, 180);
-    private Monster selectMonster;
 
 /**
  * This is the monster editing window's primary method. It creates the GUI dialog, and reads from the monster database.
  * Using lists, the user can select from monsters in the external XML file. The monster creation dialog is also accessed through this dialog.
  **/
     public void open(Window parent) {
-        checkXml();
-        entryList = getEntryList();
+        entryList = libMan.getEntryList();
 
         addingList = new ArrayList<Monster>();
         frame = new JDialog(parent, "Stat Library", Dialog.ModalityType.APPLICATION_MODAL);
@@ -156,23 +145,6 @@ public class PickMonster {
         frame.setVisible(true);
     }
 
-    private void checkXml() {
-        File f = new File(ManagerConstants.MONSTER_XML);
-        if (!f.exists()) {
-            StatLibrary statLibrary = new StatLibrary();
-            try {
-                JAXBContext context = JAXBContext.newInstance(StatLibrary.class);
-                Marshaller marsh = context.createMarshaller();
-                marsh.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-                marsh.marshal(statLibrary, new File(ManagerConstants.MONSTER_XML));
-            }
-            catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
-    }
-
-
     /**
      * Called when the "add to encounter" list needs to be updated.
      * Loads the list of monsters to be added and puts them into the JList so they can be displayed.
@@ -193,7 +165,7 @@ public class PickMonster {
     private void addSelection() {
         List<Monster> addMon = new ArrayList<Monster>();
         for(int i = 0; i < libList.getSelectedValuesList().size(); i++) {
-            addMon.add(loadMonster(((StatLibEntry) libList.getSelectedValuesList().get(i)).getIndex()));
+            addMon.add((Monster) libMan.loadMember(((LibEntry) libList.getSelectedValuesList().get(i)).getIndex()));
         }
         for (Monster mon : addMon) {
             addingList.add(mon);
@@ -215,39 +187,11 @@ public class PickMonster {
         updateAddList();
     }
 
-    private ArrayList<StatLibEntry> getEntryList() {
-        ArrayList<StatLibEntry> entryArray = new ArrayList<StatLibEntry>();
-        int counter = 0;
-        try {
-            JAXBContext context = JAXBContext.newInstance(Monster.class);
-            XMLInputFactory xmlif = XMLInputFactory.newFactory();
-            Unmarshaller unmarsh = context.createUnmarshaller();
-            XMLStreamReader xmlsr = xmlif.createXMLStreamReader(new FileReader(ManagerConstants.MONSTER_XML));
-            xmlsr.nextTag();
-            xmlsr.require(START_ELEMENT, null, "StatLibrary");
-            xmlsr.nextTag();
-            while (xmlsr.getEventType() == START_ELEMENT) {
-                xmlsr.require(XMLStreamConstants.START_ELEMENT, null, "statblock");
-                Monster mon = (Monster) unmarsh.unmarshal(xmlsr);
-                entryArray.add(new StatLibEntry(mon.getName(), counter));
-                counter++;
-                if (xmlsr.getEventType() == CHARACTERS) {
-                    xmlsr.next();
-                }
-            }
-        }
-        catch (Exception ex) {
-            ex.printStackTrace();
-            return null;
-        }
-        return entryArray;
-    }
-
     private void searchSort() {
         if (!searchField.getText().equals("")) {
-            ArrayList<StatLibEntry> searchList = new ArrayList<StatLibEntry>();
+            ArrayList<LibEntry> searchList = new ArrayList<LibEntry>();
             String searchCheck = searchField.getText().toLowerCase();
-            for (StatLibEntry entry : entryList) {
+            for (LibEntry entry : entryList) {
                 if (entry.getName().toLowerCase().contains(searchCheck)) searchList.add(entry);
             }
             libList.setListData(searchList.toArray());
@@ -257,176 +201,10 @@ public class PickMonster {
     }
 
     private void refreshLibraryList() {
-        entryList = getEntryList();
+        entryList = libMan.getEntryList();
         searchField.setText("");
         libList.setListData(entryList.toArray());
         libList.revalidate();
-    }
-
-    private Monster loadMonster(int location) {
-        try {
-            JAXBContext context = JAXBContext.newInstance(Monster.class);
-            XMLInputFactory xmlif = XMLInputFactory.newFactory();
-            Unmarshaller unmarsh = context.createUnmarshaller();
-            XMLStreamReader xmlsr = xmlif.createXMLStreamReader(new FileReader(ManagerConstants.MONSTER_XML));
-            xmlsr.nextTag();
-            xmlsr.require(START_ELEMENT, null, "StatLibrary");
-            xmlsr.nextTag();
-            for (int i = 0; i < location && xmlsr.hasNext(); i++) {
-                xmlsr.next();
-                while (xmlsr.getEventType() != XMLStreamReader.START_ELEMENT) {
-                    xmlsr.next();
-                    if (xmlsr.getEventType() == START_ELEMENT && !xmlsr.getLocalName().equals("statblock")) {
-                        xmlsr.next();
-                    }
-                }
-            }
-            return (Monster) unmarsh.unmarshal(xmlsr);
-        }
-        catch (Exception ex) {
-            ex.printStackTrace();
-            return null;
-        }
-    }
-
-    private void addToLibrary(Monster newMon) {
-        try {
-            JAXBContext context = JAXBContext.newInstance(Monster.class);
-            XMLInputFactory xmlif = XMLInputFactory.newFactory();
-            Unmarshaller unmarsh = context.createUnmarshaller();
-
-            Marshaller marsh = JAXBContext.newInstance(Monster.class).createMarshaller();
-            marsh.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-            marsh.setProperty("jaxb.fragment", true);
-
-            File tempFile = new File(ManagerConstants.MONSTER_TEMP_XML);
-            File dbFile = new File(ManagerConstants.MONSTER_XML);
-
-            FileOutputStream fos = new FileOutputStream(tempFile);
-            XMLOutputFactory xmlof = XMLOutputFactory.newFactory();
-            XMLStreamWriter xmlsw = xmlof.createXMLStreamWriter(fos, "UTF-8");
-
-            com.sun.xml.internal.txw2.output.IndentingXMLStreamWriter sw = new IndentingXMLStreamWriter(xmlsw);
-            sw.setIndentStep("    ");
-
-            xmlsw.writeStartDocument("UTF-8", "1.0");
-            xmlsw.writeStartElement("StatLibrary");
-            fos.flush();
-
-            FileInputStream fr = new FileInputStream(dbFile);
-            XMLStreamReader xmlsr = xmlif.createXMLStreamReader(fr);
-            xmlsr.nextTag();
-            xmlsr.require(START_ELEMENT, null, "StatLibrary");
-            xmlsr.nextTag();
-
-            StatLibEntry refEntry = new StatLibEntry(newMon.getName(), -1);
-            entryList.add(refEntry);
-            Collections.sort(entryList);
-            refEntry.setIndex(entryList.indexOf(refEntry));
-
-            int stopPoint = refEntry.getIndex();
-
-            for (int i = 0; i < stopPoint && xmlsr.getEventType() == START_ELEMENT; i ++) {
-                xmlsr.require(XMLStreamConstants.START_ELEMENT, null, "statblock");
-                Monster mon = (Monster) unmarsh.unmarshal(xmlsr);
-                marsh.marshal(mon, sw);
-                if (xmlsr.getEventType() == CHARACTERS) {
-                    xmlsr.next();
-                }
-            }
-
-            marsh.marshal(newMon, sw);
-
-            for (int i = 0; i < entryList.size() -1 && xmlsr.getEventType() == START_ELEMENT; i ++) {
-                xmlsr.require(XMLStreamConstants.START_ELEMENT, null, "statblock");
-                Monster mon = (Monster) unmarsh.unmarshal(xmlsr);
-                marsh.marshal(mon, sw);
-                if (xmlsr.getEventType() == CHARACTERS) {
-                    xmlsr.next();
-                }
-            }
-            xmlsw.writeEndElement();
-
-            fos.flush();
-            fos.close();
-            xmlsw.close();
-            sw.close();
-            fr.close();
-            xmlsr.close();
-
-        }
-        catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    private void removeFromLibrary(ArrayList<Integer> delIndices) {
-        try {
-            JAXBContext context = JAXBContext.newInstance(Monster.class);
-            XMLInputFactory xmlif = XMLInputFactory.newFactory();
-            Unmarshaller unmarsh = context.createUnmarshaller();
-            Marshaller marsh = JAXBContext.newInstance(Monster.class).createMarshaller();
-            marsh.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-            marsh.setProperty("jaxb.fragment", true);
-
-            File tempFile = new File(ManagerConstants.MONSTER_TEMP_XML);
-            File dbFile = new File(ManagerConstants.MONSTER_XML);
-
-            FileOutputStream fos = new FileOutputStream(tempFile);
-            XMLOutputFactory xmlof = XMLOutputFactory.newFactory();
-            XMLStreamWriter xmlsw = xmlof.createXMLStreamWriter(fos, "UTF-8");
-
-            com.sun.xml.internal.txw2.output.IndentingXMLStreamWriter sw = new IndentingXMLStreamWriter(xmlsw);
-            sw.setIndentStep("    ");
-
-            xmlsw.writeStartDocument("UTF-8", "1.0");
-            xmlsw.writeStartElement("StatLibrary");
-            fos.flush();
-
-            FileInputStream fr = new FileInputStream(dbFile);
-            XMLStreamReader xmlsr = xmlif.createXMLStreamReader(fr);
-            xmlsr.nextTag();
-            xmlsr.require(START_ELEMENT, null, "StatLibrary");
-            xmlsr.nextTag();
-
-            for (int i = 0; i < entryList.size() && xmlsr.getEventType() == START_ELEMENT; i++) {
-                xmlsr.require(XMLStreamConstants.START_ELEMENT, null, "statblock");
-                Monster mon = (Monster) unmarsh.unmarshal(xmlsr);
-                if (!delIndices.contains(i)) {
-                    marsh.marshal(mon, sw);
-                }
-
-                if (xmlsr.getEventType() == CHARACTERS) {
-                    xmlsr.next();
-                }
-            }
-
-            xmlsw.writeEndElement();
-
-            fos.flush();
-            fos.close();
-            xmlsw.close();
-            sw.close();
-            fr.close();
-            xmlsr.close();
-        }
-    catch (Exception ex) {
-        ex.printStackTrace();
-        }
-    }
-    private void updateDbFile() {
-        File tempFile = new File(ManagerConstants.MONSTER_TEMP_XML);
-        File dbFile = new File(ManagerConstants.MONSTER_XML);
-        System.gc();
-        try {
-            //System.out.println("Database file exists and was deleted? " + Files.deleteIfExists(dbFile.toPath()));
-            Files.deleteIfExists(dbFile.toPath());
-        }
-        catch (IOException ioex) {
-            ioex.printStackTrace();
-        }
-        //System.out.println("Temporary file renamed? " + tempFile.renameTo(dbFile));
-        tempFile.renameTo(dbFile);
     }
 
     /**
@@ -442,7 +220,7 @@ public class PickMonster {
     class LibrarySelectionListener implements ListSelectionListener {
         public void valueChanged(ListSelectionEvent lse) {
             try {
-                selectMonster = loadMonster(((StatLibEntry) libList.getSelectedValue()).getIndex());
+                Monster selectMonster = (Monster) libMan.loadMember(((LibEntry) libList.getSelectedValue()).getIndex());
                 panel.removeAll();
                 panel.add(selectMonster.getBlockPanel());
                 panel.revalidate();
@@ -459,8 +237,7 @@ public class PickMonster {
             mew.open(frame);
             Monster newMon = mew.getMon();
             if (newMon != null) {
-                addToLibrary(newMon);
-                updateDbFile();
+                libMan.addToLibrary(newMon);
                 refreshLibraryList();
                 panel.revalidate();
             }
@@ -469,20 +246,18 @@ public class PickMonster {
 
     class EditMonListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
-            int editMonIndex = ((StatLibEntry) libList.getSelectedValue()).getIndex();
+            int editMonIndex = ((LibEntry) libList.getSelectedValue()).getIndex();
             ArrayList<Integer> deleteIndex = new ArrayList<Integer>();
             deleteIndex.add(editMonIndex);
-            Monster editMon = loadMonster(editMonIndex);
+            Monster editMon = (Monster) libMan.loadMember(editMonIndex);
             MonEditWindow mew = new MonEditWindow(editMon);
             mew.open(frame);
             Monster newMon = mew.getMon(); // probably needs to be adjusted to remove the old instance of the monster
             if (newMon != null) {
                 int saveIndex = libList.getSelectedIndex();
-                removeFromLibrary(deleteIndex);
-                updateDbFile();
-                entryList = getEntryList();
-                addToLibrary(newMon);
-                updateDbFile();
+                libMan.removeFromLibrary(deleteIndex);
+                entryList = libMan.getEntryList();
+                libMan.addToLibrary(newMon);
                 refreshLibraryList();
                 panel.revalidate();
                 libList.setSelectedIndex(saveIndex);
@@ -492,13 +267,12 @@ public class PickMonster {
 
     class CopyMonListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
-            Monster copyMon = loadMonster(((StatLibEntry) libList.getSelectedValue()).getIndex());
+            Monster copyMon = (Monster) libMan.loadMember(((LibEntry) libList.getSelectedValue()).getIndex());
             MonEditWindow mew = new MonEditWindow(copyMon);
             mew.open(frame);
             Monster newMon = mew.getMon();
             if (newMon != null) {
-                addToLibrary(newMon);
-                updateDbFile();
+                libMan.addToLibrary(newMon);
                 refreshLibraryList();
                 panel.revalidate();
             }
@@ -509,15 +283,14 @@ public class PickMonster {
         public void actionPerformed(ActionEvent e) {
             ArrayList<Integer> delIndexList = new ArrayList<Integer>();
             for (int i = 0; i < libList.getSelectedValuesList().size(); i++) {
-                delIndexList.add(((StatLibEntry) libList.getSelectedValuesList().get(i)).getIndex());
+                delIndexList.add(((LibEntry) libList.getSelectedValuesList().get(i)).getIndex());
             }
             if (delIndexList.size() > 0) { //ensure the range to be deleted actually includes something to be deleted
                 Object[] options = {"Delete", "Cancel"};
                 int choice = JOptionPane.showOptionDialog(frame, "Permanently delete the selected monster(s)?", "Confirm deletion",
                         JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
                 if (choice == 0) { // if the user selects "Yes" to deleting the selected monsters
-                    removeFromLibrary(delIndexList);
-                    updateDbFile();
+                    libMan.removeFromLibrary(delIndexList);
                     refreshLibraryList();
                     libList.setSelectedIndex(0);
                     panel.removeAll();
