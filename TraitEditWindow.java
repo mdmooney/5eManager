@@ -27,6 +27,10 @@ public class TraitEditWindow extends PowerEditWindow {
         return trait;
     }
 
+    protected JPanel getInsertPanel() {
+        return new JPanel();
+    }
+
     void saveData() {
         if (!name.getText().equals("")) {
             this.trait = new Trait(name.getText(), description.getText());

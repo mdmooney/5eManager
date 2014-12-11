@@ -125,13 +125,13 @@ public class LegActionEditWindow extends PowerEditWindow {
         GridBagConstraints cb = new GridBagConstraints();
         super.layoutGui();
 
-        c.gridy = 1;
-        c.gridx = 0;
-        c.gridwidth = 1;
-        editPanel.add(new JLabel("Cost: "), c);
-        c.gridx++;
-        c.fill=GridBagConstraints.NONE;
-        editPanel.add(legCostSpin, c);
+//        c.gridy = 1;
+//        c.gridx = 0;
+//        c.gridwidth = 1;
+//        editPanel.add(new JLabel("Cost: "), c);
+//        c.gridx++;
+//        c.fill=GridBagConstraints.NONE;
+//        editPanel.add(legCostSpin, c);
 
         cb.gridx = 0;
         cb.gridy=0;
@@ -150,6 +150,22 @@ public class LegActionEditWindow extends PowerEditWindow {
         leftPanel.add(actionScroller, cb);
 
         dialog.add(BorderLayout.WEST, leftPanel);
+    }
+
+    protected JPanel getInsertPanel() {
+        JPanel costPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints cb = new GridBagConstraints();
+        cb.gridx=0;
+        cb.gridy=0;
+        cb.anchor = GridBagConstraints.WEST;
+        //cb.weightx=0;
+        cb.gridwidth = 1;
+        costPanel.add(new JLabel("Cost:         "), cb);
+        cb.gridx++;
+        cb.weightx=1;
+        cb.fill=GridBagConstraints.NONE;
+        costPanel.add(legCostSpin, cb);
+        return costPanel;
     }
 
     void saveData() {

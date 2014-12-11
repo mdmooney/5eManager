@@ -1,10 +1,12 @@
 import javax.swing.*;
+import java.awt.*;
 
 /**
  * Created by Michael on 09/12/2014.
  */
 public class SpellEditWindow extends PowerEditWindow {
     private Spell spell;
+    private JTextField schoolField = new JTextField(10);
 
     public SpellEditWindow(JDialog parent) {
         super(parent);
@@ -23,6 +25,34 @@ public class SpellEditWindow extends PowerEditWindow {
 
     public Spell getSpell() {
         return spell;
+    }
+
+    protected void layoutGui() {
+        super.layoutGui();
+    }
+
+    protected JPanel getInsertPanel() {
+        GridBagConstraints cb = new GridBagConstraints();
+        JPanel spellPanel = new JPanel(new GridBagLayout());
+        cb.gridx=0;
+        cb.anchor=GridBagConstraints.WEST;
+        cb.gridy=0;
+        cb.weightx=0;
+        spellPanel.add(new JLabel("School: "), cb);
+        cb.gridx++;
+        cb.weightx=1;
+        spellPanel.add(schoolField, cb);
+        cb.gridx--;
+        cb.gridy++;
+        cb.weightx=0;
+        spellPanel.add(new JLabel("Cast Time: "),cb);
+        cb.gridy++;
+        spellPanel.add(new JLabel("Range: "),cb);
+        cb.gridy++;
+        spellPanel.add(new JLabel("Components: "), cb);
+        cb.gridy++;
+        spellPanel.add(new JLabel("Duration: "),cb);
+        return spellPanel;
     }
 
     void saveData() {

@@ -85,7 +85,10 @@ public abstract class PowerEditWindow {
         c.gridwidth=GridBagConstraints.REMAINDER;
         c.fill = GridBagConstraints.HORIZONTAL;
         editPanel.add(name, c);
-
+        c.gridy=1;
+        c.gridx=0;
+        c.gridwidth=2;
+        editPanel.add(getInsertPanel(),c);
         c.gridy=2;
         c.gridx=0;
         c.gridwidth=GridBagConstraints.REMAINDER;
@@ -102,6 +105,8 @@ public abstract class PowerEditWindow {
             description.setText(power.getDescription());
         }
     }
+
+    protected abstract JPanel getInsertPanel();
 
     abstract void saveData();
 

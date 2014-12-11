@@ -93,6 +93,29 @@ public class ActionEditWindow extends PowerEditWindow  {
 
     protected void layoutGui() {
         super.layoutGui();
+
+        if (this.action != null) {
+            if (this.action instanceof Attack) {
+                Attack atk = (Attack) this.action;
+                atkCheck.setSelected(true);
+                atkBonus.setValue(atk.getBonus());
+                if (atk.getType().split(" ").length > 2) {
+                    comboTypeA.setSelectedIndex(2);
+                    comboTypeB.setSelectedItem(atk.getType().split(" ")[3]);
+                }
+
+                else {
+                    comboTypeA.setSelectedItem(atk.getType().split(" ")[0]);
+                    comboTypeB.setSelectedItem(atk.getType().split(" ")[1]);
+                }
+            }
+            if (this.action instanceof Reaction) {
+                reactCheck.setSelected(true);
+            }
+        }
+    }
+
+    protected JPanel getInsertPanel() {
         JPanel actPanel = new JPanel(new GridBagLayout());
         GridBagConstraints cb = new GridBagConstraints();
         cb.gridx=0;
@@ -119,31 +142,12 @@ public class ActionEditWindow extends PowerEditWindow  {
         cb.gridx++;
         cb.weightx=1;
         actPanel.add(atkBonus, cb);
-        c.gridy=1;
-        c.gridx=0;
-        c.fill=GridBagConstraints.HORIZONTAL;
-        c.gridwidth=GridBagConstraints.REMAINDER;
-        editPanel.add(actPanel, c);
-
-        if (this.action != null) {
-            if (this.action instanceof Attack) {
-                Attack atk = (Attack) this.action;
-                atkCheck.setSelected(true);
-                atkBonus.setValue(atk.getBonus());
-                if (atk.getType().split(" ").length > 2) {
-                    comboTypeA.setSelectedIndex(2);
-                    comboTypeB.setSelectedItem(atk.getType().split(" ")[3]);
-                }
-
-                else {
-                    comboTypeA.setSelectedItem(atk.getType().split(" ")[0]);
-                    comboTypeB.setSelectedItem(atk.getType().split(" ")[1]);
-                }
-            }
-            if (this.action instanceof Reaction) {
-                reactCheck.setSelected(true);
-            }
-        }
+//        c.gridy=1;
+//        c.gridx=0;
+//        c.fill=GridBagConstraints.HORIZONTAL;
+//        c.gridwidth=GridBagConstraints.REMAINDER;
+//        editPanel.add(actPanel, c);
+        return actPanel;
     }
 
     void saveData() {
