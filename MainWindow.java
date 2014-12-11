@@ -10,6 +10,7 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import javax.swing.UIManager.*;
 
 /**
  * Created by Michael on 25/11/2014.
@@ -30,6 +31,30 @@ public class MainWindow {
     }
 
     public void go() {
+        try {
+            for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (ClassNotFoundException e) {
+            System.err.println("Couldn't find class for Nimbus look and feel.");
+            System.err.println("Did you include the L&F library in the class path?");
+            System.err.println("Using the default look and feel.");
+        }
+
+        catch (UnsupportedLookAndFeelException e) {
+            System.err.println("Can't use the specified look and feel ('Nimbus') on this platform.");
+            System.err.println("Using the default look and feel.");
+        }
+
+        catch (Exception e) {
+            System.err.println("Couldn't get specified look and feel ('Nimbus'), for some reason.");
+            System.err.println("Using the default look and feel.");
+            e.printStackTrace();
+        }
+
         frame = new JFrame("5e Manager");
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         JPanel centPanel = new JPanel(new GridBagLayout());

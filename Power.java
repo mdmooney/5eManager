@@ -1,3 +1,6 @@
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 /**
@@ -5,6 +8,7 @@ import javax.xml.bind.annotation.XmlType;
  */
 
 @XmlType(propOrder = {"name","description"})
+//@XmlAccessorType(XmlAccessType.FIELD)
 
 public class Power implements Comparable<Power> {
     private String name;

@@ -9,6 +9,7 @@ import javax.swing.event.*;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 import java.awt.*;
+import javax.swing.UIManager.*;
 
 public class FrameTest2 {
     JTextField testField;
@@ -23,6 +24,16 @@ public class FrameTest2 {
     }
 
     public void go() {
+        try {
+            for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            // If Nimbus is not available, you can set the GUI to another look and feel.
+        }
         JFrame frame = new JFrame("Frame Test 2");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         JPanel panel = new JPanel();
