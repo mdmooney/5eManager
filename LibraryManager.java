@@ -1,5 +1,6 @@
 import com.sun.xml.internal.txw2.output.IndentingXMLStreamWriter;
 
+import javax.swing.*;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
@@ -19,7 +20,8 @@ import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
  */
 
 public class LibraryManager {
-    public enum LibType { MONSTER, SPELL };
+    public enum LibType { MONSTER, SPELL, PLAYER }
+
     public LibType selectedLibType;
     private String xmlFile;
     private String xmlTempFile;
@@ -45,6 +47,14 @@ public class LibraryManager {
             entryTag = "spellblock";
             refClass = Spell.class.getName();
             dummyMember = new Spell();
+        }
+        else if (selectedLibType == LibType.PLAYER) {
+            xmlFile = ManagerConstants.PLAYER_XML;
+            xmlTempFile = ManagerConstants.PLAYER_TEMP_XML;
+            libName = "PlayerLibrary";
+            entryTag = "pcblock";
+            refClass = Player.class.getName();
+            dummyMember = new Player();
         }
         checkXml();
     }

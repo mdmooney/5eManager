@@ -12,6 +12,7 @@ public class SpellEditWindow extends PowerEditWindow {
     private JTextField rangeField = new JTextField(10);
     private JTextField componentsField = new JTextField(13);
     private JTextField durationField = new JTextField(10);
+    private JComboBox schoolBox = new JComboBox(ManagerConstants.SPELL_SCHOOLS);
 
     public SpellEditWindow(JDialog parent) {
         super(parent);
@@ -24,8 +25,15 @@ public class SpellEditWindow extends PowerEditWindow {
         windowTitle = "Edit Spell";
         this.spell = new Spell();
         this.setPower(spell);
-        this.getSpell().setName(spell.getName());
-        this.getSpell().setDescription(spell.getDescription());
+        this.spell.setName(spell.getName());
+        this.spell.setDescription(spell.getDescription());
+        this.spell.setLevel(spell.getLevel());
+
+        this.spell.setCastTime(spell.getCastTime());
+        this.spell.setComponents(spell.getComponents());
+        this.spell.setDuration(spell.getDuration());
+        this.spell.setRange(spell.getRange());
+        this.spell.setSchool(spell.getSchool());
     }
 
     public Spell getSpell() {
@@ -34,6 +42,12 @@ public class SpellEditWindow extends PowerEditWindow {
 
     protected void layoutGui() {
         super.layoutGui();
+        //if there's a spell reference during setup (i.e. if we're in "edit mode"), pull its stats and display them, and change text to reflect "edit mode"
+        if (spell != null) {
+            fillFields();
+            saveButton.setText("Save Changes");
+            dialog.setTitle("Edit Spell");
+        }
     }
 
     protected JPanel getInsertPanel() {
@@ -46,11 +60,13 @@ public class SpellEditWindow extends PowerEditWindow {
         spellPanel.add(new JLabel("Level: "), cb);
         cb.gridx++;
         spellPanel.add(levelSpin, cb);
+        ((JSpinner.NumberEditor) levelSpin.getEditor()).getTextField().addFocusListener(new NumberFocusListener());
         cb.gridx--;
         cb.gridy++;
         spellPanel.add(new JLabel("School: "), cb);
         cb.gridx++;
-        spellPanel.add(schoolField, cb);
+        //spellPanel.add(schoolField, cb);
+        spellPanel.add(schoolBox, cb);
         cb.gridx--;
         cb.gridy++;
         cb.weightx=0;
@@ -78,16 +94,28 @@ public class SpellEditWindow extends PowerEditWindow {
     }
 
     void saveData() {
-        if (!name.getText().equals("") && !schoolField.getText().equals("")) {
-            this.spell = new Spell(name.getText(), description.getText(), schoolField.getText(), castTimeField.getText(), rangeField.getText(),
+        if (!name.getText().equals("")) {
+            this.spell = new Spell(name.getText(), description.getText(), (String) schoolBox.getSelectedItem(), castTimeField.getText(), rangeField.getText(),
                     componentsField.getText(), durationField.getText(), (Integer) levelSpin.getValue());
             dialog.dispose();
         }
-        else JOptionPane.showMessageDialog(dialog, "At a minimum, you must enter a name and school to save a spell.");
+        else JOptionPane.showMessageDialog(dialog, "At a minimum, you must enter a name to save a spell.");
     }
 
     protected void nullPower() {
         this.spell = null;
         this.power = null;
+    }
+
+    private void fillFields() {
+        levelSpin.setValue(spell.getLevel());
+        name.setText(spell.getName());
+        description.setText(spell.getDescription());
+        //schoolField.setText(spell.getSchool());
+        schoolBox.setSelectedItem(spell.getSchool());
+        castTimeField.setText(spell.getCastTime());
+        rangeField.setText(spell.getRange());
+        componentsField.setText(spell.getComponents());
+        durationField.setText(spell.getDuration());
     }
 }

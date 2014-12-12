@@ -112,6 +112,7 @@ public class MainWindow {
         JMenuItem pcLibMenuItem = new JMenuItem("Player Library");
 
         JMenuItem spellLibMenuItem = new JMenuItem("Spell Library");
+        spellLibMenuItem.addActionListener(new SpellLibButtonListener());
 
         JMenuItem rollInitItem = new JMenuItem("Roll initiative for all");
         rollInitItem.addActionListener(new ActionListener() {
@@ -287,6 +288,13 @@ public class MainWindow {
                 participants.addAll(pm.getParticipants());
                 updateParticipants();
             }
+        }
+    }
+
+    public class SpellLibButtonListener implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            PickSpell ps = new PickSpell();
+            ps.open(frame);
         }
     }
 
