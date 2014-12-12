@@ -37,6 +37,7 @@ public class PlayerEditWindow {
     private JList actionList = new JList();
     private ArrayList<Trait> traitArrayList = new ArrayList<Trait>();
     private ArrayList<Action> actionArrayList = new ArrayList<Action>();
+    private ArrayList<SpellRef> spellRefArrayList = new ArrayList<SpellRef>();
 
     ArrayList<JCheckBox> savesBoxes = new ArrayList<JCheckBox>();
     ArrayList<JLabel> savesLabels = new ArrayList<JLabel>();
@@ -539,6 +540,10 @@ public class PlayerEditWindow {
     public void spellcastingWindow() {
         SpellcastingEditWindow sew = new SpellcastingEditWindow();
         sew.open(dialog);
+        ArrayList<SpellRef> newSpellRefList = sew.getSpellRefList();
+        if (newSpellRefList != null) {
+            this.spellRefArrayList = newSpellRefList;
+        }
     }
 
     /**

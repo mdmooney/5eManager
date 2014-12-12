@@ -159,7 +159,7 @@ public class ActionEditWindow extends PowerEditWindow  {
                 this.action = new Reaction(name.getText(), description.getText());
             }
             else {
-                this.action = new Action(name.getText(), description.getText());
+                this.action = new Action(name.getText(),description.getText());
             }
             dialog.dispose();
         }

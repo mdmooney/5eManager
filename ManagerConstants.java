@@ -22,6 +22,7 @@ public final class ManagerConstants {
     public static final String SPELL_TEMP_XML = "./spells.temp";
 
     public static final String[] DICE_TYPES = {"d4", "d6", "d8", "d10", "d12"};
+    public static final String[] SPELL_SCHOOLS = {"Abjuration", "Conjuration", "Divination", "Enchantment", "Evocation", "Illusion", "Necromancy", "Transmutation"};
 
     public static final String[] SHORT_ABILITY_NAMES = {"STR", "DEX", "CON", "INT", "WIS", "CHA"};
 

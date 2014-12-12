@@ -252,7 +252,7 @@ public class PickMonster {
             Monster editMon = (Monster) libMan.loadMember(editMonIndex);
             MonEditWindow mew = new MonEditWindow(editMon);
             mew.open(frame);
-            Monster newMon = mew.getMon(); // probably needs to be adjusted to remove the old instance of the monster
+            Monster newMon = mew.getMon();
             if (newMon != null) {
                 int saveIndex = libList.getSelectedIndex();
                 libMan.removeFromLibrary(deleteIndex);

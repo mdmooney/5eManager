@@ -16,7 +16,7 @@ public class Attack extends Action {
 
     @XmlElement
     public String getType() {
-        return type;
+        return pruneText(type);
     }
 
     public void setBonus(int bonus) {
@@ -24,7 +24,7 @@ public class Attack extends Action {
     }
 
     public void setType(String type) {
-        this.type = type;
+        this.type = pruneText(type);
     }
 
     public Attack() {}

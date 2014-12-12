@@ -19,8 +19,13 @@ public class SpellcastingEditWindow {
     public void open(Window parent) {
         dialog = new JDialog(parent, "Edit Player Spells", Dialog.ModalityType.APPLICATION_MODAL);
         JPanel topPanel = new JPanel();
-        JButton saveButton = new JButton("Click me!");
+        JPanel bottomPanel = new JPanel();
+        JButton saveButton = new JButton("Save Spells");
+        JButton cancelButton = new JButton("Cancel");
         saveButton.addActionListener(new SaveSpellsListener());
+        //cancel button listener goes here
+        bottomPanel.add(saveButton);
+        bottomPanel.add(cancelButton);
 
         JButton newClassButton = new JButton("New Class");
         newClassButton.addActionListener(new ActionListener() {
@@ -46,7 +51,7 @@ public class SpellcastingEditWindow {
         }
 
         dialog.add(BorderLayout.CENTER, tabbedPane);
-        dialog.add(BorderLayout.SOUTH, saveButton);
+        dialog.add(BorderLayout.SOUTH, bottomPanel);
         dialog.add(BorderLayout.NORTH, topPanel);
         dialog.pack();
         dialog.setLocationRelativeTo(parent);
@@ -147,6 +152,10 @@ public class SpellcastingEditWindow {
                 tabbedPane.remove(tabbedPane.getSelectedComponent());
             }
         }
+    }
+
+    public ArrayList<SpellRef> getSpellRefList() {
+        return spellRefList;
     }
 
     public class SaveSpellsListener implements ActionListener {

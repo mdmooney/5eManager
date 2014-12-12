@@ -1,4 +1,6 @@
 import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.Style;
@@ -111,81 +113,75 @@ public class Monster implements Comparable<Monster>, Fightable, LibraryMember {
     public void setHp(int hp) { this.hp = hp;}
 
     public String getName() {
-        return name;
+        return TextFormat.pruneText(name);
     }
 
-    public void setName(String name) { this.name = name;}
+    public void setName(String name) { this.name = TextFormat.pruneText(name);}
 
-    public String getType() {
-        return type;
+    public String getType() { return TextFormat.pruneText(type);
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setType(String type) { this.type = TextFormat.pruneText(type);
     }
 
     public String getSaves() {
-        return saves;
+        return TextFormat.pruneText(saves);
     }
 
-    public void setSaves(String saves) {
-        this.saves = saves;
-    }
+    public void setSaves(String saves) {this.saves = TextFormat.pruneText(saves);    }
 
     public String getSkills() {
         return skills;
     }
 
     public void setSkills(String skills) {
-        this.skills = skills;
+        this.skills = TextFormat.pruneText(skills);
     }
 
     public String getVuln() {
-        return vuln;
+        return TextFormat.pruneText(vuln);
     }
 
     public void setVuln(String vuln) {
-        this.vuln = vuln;
+        this.vuln = TextFormat.pruneText(vuln);
     }
 
     public String getResist() {
-        return resist;
+        return TextFormat.pruneText(resist);
     }
 
     public void setResist(String resist) {
-        this.resist = resist;
+        this.resist = TextFormat.pruneText(resist);
     }
 
     public String getImmu() {
-        return immu;
+        return TextFormat.pruneText(immu);
     }
 
     public void setImmu(String immu) {
-        this.immu = immu;
+        this.immu = TextFormat.pruneText(immu);
     }
 
     public String getConImmu() {
-        return conImmu;
+        return TextFormat.pruneText(conImmu);
     }
 
-    public void setConImmu(String conImmu) {
-        this.conImmu = conImmu;
-    }
+    public void setConImmu(String conImmu) { this.conImmu = TextFormat.pruneText(conImmu); }
 
     public String getSense() {
-        return sense;
+        return TextFormat.pruneText(sense);
     }
 
     public void setSense(String sense) {
-        this.sense = sense;
+        this.sense = TextFormat.pruneText(sense);
     }
 
     public String getLang() {
-        return lang;
+        return TextFormat.pruneText(lang);
     }
 
     public void setLang(String lang) {
-        this.lang = lang;
+        this.lang = TextFormat.pruneText(lang);
     }
 
     public void setScore(int i, int newVal) {
@@ -193,11 +189,11 @@ public class Monster implements Comparable<Monster>, Fightable, LibraryMember {
     }
 
     public String getSpeed() {
-        return speed;
+        return TextFormat.pruneText(speed);
     }
 
     public void setSpeed(String speed) {
-        this.speed = speed;
+        this.speed = TextFormat.pruneText(speed);
     }
 
     public void setScores(int[] scores) {
@@ -248,7 +244,7 @@ public class Monster implements Comparable<Monster>, Fightable, LibraryMember {
     }
 
     public JPanel getBlockPanel() {
-        JPanel panel = new JPanel();
+        final JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         JTextPane textPane = new JTextPane();
         textPane.setEditable(false);
@@ -277,9 +273,35 @@ public class Monster implements Comparable<Monster>, Fightable, LibraryMember {
             addBasicLine(kit, doc, "Languages", lang);
             addBasicLine(kit, doc, "Challenge", this.challengeToString());
             kit.insertHTML(doc, doc.getLength(), "<hr>", 0, 0, HTML.Tag.HR);
+
+            boolean castsSpells = false;
             for (Trait trait : traitList) {
-                kit.insertHTML(doc, doc.getLength(), "<b><i>" + trait.getName() + ". </b></i>" + trait.getDescription().replace("\n", "<br>") + "<br>", 0, 0, HTML.Tag.B);
+
+                if (trait.getName().equalsIgnoreCase("spellcasting")) {
+                    kit.insertHTML(doc, doc.getLength(), "<b><i>" + trait.getName() + ". </b></i>" + getFormattedSpells(trait).replace("\n", "<br>"), 0, 0, HTML.Tag.B);
+                    castsSpells = true;
+                }
+
+                else if (trait.getName().toLowerCase().startsWith("innate spellcasting")) {
+                    kit.insertHTML(doc, doc.getLength(), "<b><i>" + trait.getName() + ". </b></i>" + getFormattedInnateSpells(trait).replace("\n", "<br>"), 0, 0, HTML.Tag.B);
+                    castsSpells = true;
+                }
+
+                else kit.insertHTML(doc, doc.getLength(), "<b><i>" + trait.getName() + ". </b></i>" + trait.getDescription().replace("\n", "<br>") + "<br>", 0, 0, HTML.Tag.B);
             }
+
+            if (castsSpells) textPane.addHyperlinkListener(new HyperlinkListener() {
+                @Override
+                public void hyperlinkUpdate(HyperlinkEvent e) {
+                    if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+                        if (e.getDescription().startsWith("spell:")) { //tag to help protect against false spell tags added by the user
+                            String spellName = e.getDescription();
+                            PickSpell ps = new PickSpell();
+                            ps.jumpTo(spellName.substring(6, spellName.length()), SwingUtilities.windowForComponent(panel));
+                        }
+                    }
+                }
+            });
 
 
             boolean hasReaction = false;
@@ -330,7 +352,6 @@ public class Monster implements Comparable<Monster>, Fightable, LibraryMember {
             ex.printStackTrace();
         }
         JScrollPane textPaneScroll = new JScrollPane(textPane);
-        //panel.add(textPane);
         panel.add(textPaneScroll);
         return panel;
     }
@@ -351,6 +372,74 @@ public class Monster implements Comparable<Monster>, Fightable, LibraryMember {
         retString += "<td>" + scores[5] + " (" + mods[5] + ")</td>";
         retString += "</tr></table><br>";
         return retString;
+    }
+
+    private String getFormattedSpells(Trait trait) {
+        String desc = trait.getDescription();
+        String formatSpells = "";
+        String[] lineBrokenSpells = desc.split("\n");
+        for (String str : lineBrokenSpells) {
+            if (str.startsWith("Cantrips")) {
+                formatSpells += str.substring(0,str.indexOf("): ") + 3);
+                String spellList[] = str.substring(str.indexOf("): ") + 3, str.length()).split(", ");
+                for (int i = 0; i < spellList.length; i++) {
+                    formatSpells += "<font color='blue'><i><a href='spell:" + spellList[i] + "'>"+ spellList[i] + "</a></i></font>";
+                    if (i != spellList.length - 1) formatSpells += ", ";
+                }
+                formatSpells += "<br>";
+            }
+            else if (str.toLowerCase().contains("level (")) {
+                formatSpells += str.substring(0,str.indexOf("): ") + 3);
+                String spellList[] = str.substring(str.indexOf("): ") + 3, str.length()).split(", ");
+                for (int i = 0; i < spellList.length; i++) {
+                    formatSpells += "<font color='blue'><i><a href='spell:" + spellList[i] + "'>"+ spellList[i] + "</a></i></font>";
+                    if (i != spellList.length - 1) formatSpells += ", ";
+                }
+                formatSpells += "<br>";
+            }
+            else formatSpells += str + "<br>";
+        }
+        return formatSpells;
+    }
+
+    private String getFormattedInnateSpells(Trait trait) {
+        String desc = trait.getDescription();
+        String formatSpells = "";
+        String[] lineBrokenSpells = desc.split("\n");
+        for (String str : lineBrokenSpells) {
+            if (str.toLowerCase().contains("will: ")) {
+                formatSpells += str.substring(0,str.indexOf("will: ") + 6);
+                String spellList[] = str.substring(str.indexOf("will: ") + 6, str.length()).split(", ");
+                for (int i = 0; i < spellList.length; i++) {
+                    String spellName = spellList[i];
+                    String spellNote = "";
+                    if (spellName.contains("(")) {
+                        spellName = spellList[i].substring(0,spellList[i].indexOf("("));
+                        spellNote = " " + spellList[i].substring(spellList[i].indexOf("("),spellList[i].length());
+                    }
+                    formatSpells += "<font color='blue'><i><a href='spell:" + spellName.trim() + "'>"+ spellName.trim() + "</a></i></font> " + spellNote;
+                    if (i != spellList.length - 1) formatSpells += ", ";
+                }
+                formatSpells += "<br>";
+            }
+            else if (str.toLowerCase().contains("each: ")) {
+                formatSpells += str.substring(0,str.indexOf("each: ") + 6);
+                String spellList[] = str.substring(str.indexOf("each: ") + 6, str.length()).split(", ");
+                for (int i = 0; i < spellList.length; i++) {
+                    String spellName = spellList[i];
+                    String spellNote = "";
+                    if (spellName.contains("(")) {
+                        spellName = spellList[i].substring(0,spellList[i].indexOf("("));
+                        spellNote = " " + spellList[i].substring(spellList[i].indexOf("("),spellList[i].length());
+                    }
+                    formatSpells += "<font color='blue'><i><a href='spell:" + spellName.trim() + "'>"+ spellName.trim() + "</a></i></font>" + spellNote;
+                    if (i != spellList.length - 1) formatSpells += ", ";
+                }
+                formatSpells += "<br>";
+            }
+            else formatSpells += str + "<br>";
+        }
+        return formatSpells;
     }
 
     private void addBasicLine(HTMLEditorKit kit, HTMLDocument doc, String name, String variable) {

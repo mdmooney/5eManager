@@ -18,8 +18,8 @@ public class Power implements Comparable<Power> {
     }
 
     public Power(String name, String desc) {
-        this.name = name;
-        this.description = desc;
+        this.name = pruneText(name);
+        this.description = pruneText(desc);
     }
 
     public int compareTo(Power pow) {
@@ -38,22 +38,32 @@ public class Power implements Comparable<Power> {
     }
 
     public String getName() {
-        return name;
+        return pruneText(name);
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.name = pruneText(name);
     }
 
     public String getDescription() {
-        return description;
+        return pruneText(description);
     }
 
     public void setDescription(String description) {
-        this.description = description;
+        this.description = pruneText(description);
     }
 
     public String toString() {
         return this.getName();
+    }
+
+    /** Cleans simple HTML tags from a string.
+     *  Used to ensure the user doesn't break everything by using HTML formatting, as without this, virtually any HTML would function just fine.
+     *  @param entryString The String to be pruned.
+     *  @return The String without HTML tags.
+     */
+
+    protected String pruneText(String entryString) {
+        return TextFormat.pruneText(entryString);
     }
 }

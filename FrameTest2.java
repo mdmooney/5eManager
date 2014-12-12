@@ -11,14 +11,13 @@ import javax.swing.text.html.HTMLEditorKit;
 import java.awt.*;
 import javax.swing.UIManager.*;
 
-//test comment for BitBucket push
-
 public class FrameTest2 {
     JTextField testField;
     JCheckBox checkBox;
     JSpinner testSpin;
     SpinnerNumberModel model1;
     SpinnerNumberModel model2;
+    JFrame frame;
 
     public static void main(String[] args) {
         FrameTest2 ft2 = new FrameTest2();
@@ -36,7 +35,7 @@ public class FrameTest2 {
         } catch (Exception e) {
             // If Nimbus is not available, you can set the GUI to another look and feel.
         }
-        JFrame frame = new JFrame("Frame Test 2");
+        frame = new JFrame("Frame Test 2");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         JPanel panel = new JPanel();
         JTabbedPane tabbedPane = new JTabbedPane();
@@ -48,13 +47,13 @@ public class FrameTest2 {
         textPane.setEditorKit(kit);
         textPane.setDocument(doc);
 
-        String testSpell = "Scorching Ray";
+        String testSpell = "Disintegrate";
         textPane.setText("<a href='" + testSpell + "'>"+ testSpell + "</a>");
         textPane.addHyperlinkListener(new HyperlinkListener() {
             @Override
             public void hyperlinkUpdate(HyperlinkEvent e) {
                 if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-                    System.out.println(e.getDescription());
+                    spellLinkTest(e.getDescription());
                 }
             }
         });
@@ -71,6 +70,16 @@ public class FrameTest2 {
         frame.add(BorderLayout.CENTER, panel);
         frame.pack();
         frame.setVisible(true);
+    }
+
+    private void spellLinkTest(String spellName) {
+        try {
+            PickSpell ps = new PickSpell();
+            ps.jumpTo(spellName, frame);
+        }
+        catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
 }

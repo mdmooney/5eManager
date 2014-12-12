@@ -199,17 +199,6 @@ public class LegActionEditWindow extends PowerEditWindow {
         this.power = null;
     }
 
-    private void updateAction() {
-        if (legendaryAction != null) {
-            if (!name.getText().equals("")) {
-                legendaryAction.setName(name.getText());
-                legendaryAction.setDescription(description.getText());
-                legendaryAction.setCost((Integer) legCostSpin.getValue());
-                refreshActionList();
-            }
-        }
-    }
-
     public ArrayList<LegendaryAction> getLegendaryActionArrayList() {
         //return this.legendaryActionArrayList;
         return this.returningArrayList;

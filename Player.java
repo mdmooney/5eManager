@@ -8,7 +8,7 @@ import java.util.ArrayList;
 @XmlType(propOrder = {"name", "classes", "ac", "hp", "speed", "level", "scores", "saves", "skills", "profs", "lang", "notes", "traitList", "actionList", "spellRefs"})
 @XmlSeeAlso({Action.class, Attack.class, Reaction.class, SpellRef.class})
 
-public class Player implements Fightable {
+public class Player implements Fightable, LibraryMember {
     private String name;
     private String classes;
     private String saves;
@@ -32,5 +32,13 @@ public class Player implements Fightable {
 
     public int getHp() {
         return 1;
+    }
+
+    public String getName() {
+        return pruneText(name);
+    }
+
+    protected String pruneText(String entryString) {
+        return TextFormat.pruneText(entryString);
     }
 }
