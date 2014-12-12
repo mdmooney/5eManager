@@ -14,7 +14,8 @@ import static javax.xml.stream.XMLStreamConstants.CHARACTERS;
 import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
 
 /**
- * Created by Michael on 11/12/2014.
+ * Class for general library management, originally for Monsters and Spells but can very easily be expanded to include others in the future (items, etc.).
+ * Instantiate this class to handle reading from/writing to the 5eManager's XML libraries.
  */
 
 public class LibraryManager {
