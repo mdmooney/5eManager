@@ -60,10 +60,9 @@ public class PickSpell {
             }
         });
         JScrollPane libScroller = new JScrollPane(libList);
-        //libList.setPreferredSize(LIST_DIMENSION);
         libScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         libScroller.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-        //libScroller.setPreferredSize(LIST_DIMENSION);
+        libScroller.setPreferredSize(LIST_DIMENSION);
 
         //refresh the library list
         refreshLibraryList();

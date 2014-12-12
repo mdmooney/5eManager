@@ -39,6 +39,8 @@ public class TraitEditWindow extends PowerEditWindow {
         else JOptionPane.showMessageDialog(dialog, "At a minimum, you must enter a name to save a trait.");
     }
 
+
+
     protected void nullPower() {
         this.trait = null;
         this.power = null;

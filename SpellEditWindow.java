@@ -96,7 +96,7 @@ public class SpellEditWindow extends PowerEditWindow {
     void saveData() {
         if (!name.getText().equals("")) {
             this.spell = new Spell(name.getText(), description.getText(), (String) schoolBox.getSelectedItem(), castTimeField.getText(), rangeField.getText(),
-                    componentsField.getText(), durationField.getText(), (Integer) levelSpin.getValue());
+                   componentsField.getText(), durationField.getText(), (Integer) levelSpin.getValue());
             dialog.dispose();
         }
         else JOptionPane.showMessageDialog(dialog, "At a minimum, you must enter a name to save a spell.");

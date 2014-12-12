@@ -106,6 +106,7 @@ public abstract class PowerEditWindow {
         }
     }
 
+
     protected abstract JPanel getInsertPanel();
 
     abstract void saveData();

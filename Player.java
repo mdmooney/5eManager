@@ -35,6 +35,10 @@ public class Player implements Fightable, LibraryMember {
     }
 
     public String getName() {
-        return name;
+        return pruneText(name);
+    }
+
+    protected String pruneText(String entryString) {
+        return TextFormat.pruneText(entryString);
     }
 }

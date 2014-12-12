@@ -113,81 +113,75 @@ public class Monster implements Comparable<Monster>, Fightable, LibraryMember {
     public void setHp(int hp) { this.hp = hp;}
 
     public String getName() {
-        return name;
+        return TextFormat.pruneText(name);
     }
 
-    public void setName(String name) { this.name = name;}
+    public void setName(String name) { this.name = TextFormat.pruneText(name);}
 
-    public String getType() {
-        return type;
+    public String getType() { return TextFormat.pruneText(type);
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setType(String type) { this.type = TextFormat.pruneText(type);
     }
 
     public String getSaves() {
-        return saves;
+        return TextFormat.pruneText(saves);
     }
 
-    public void setSaves(String saves) {
-        this.saves = saves;
-    }
+    public void setSaves(String saves) {this.saves = TextFormat.pruneText(saves);    }
 
     public String getSkills() {
         return skills;
     }
 
     public void setSkills(String skills) {
-        this.skills = skills;
+        this.skills = TextFormat.pruneText(skills);
     }
 
     public String getVuln() {
-        return vuln;
+        return TextFormat.pruneText(vuln);
     }
 
     public void setVuln(String vuln) {
-        this.vuln = vuln;
+        this.vuln = TextFormat.pruneText(vuln);
     }
 
     public String getResist() {
-        return resist;
+        return TextFormat.pruneText(resist);
     }
 
     public void setResist(String resist) {
-        this.resist = resist;
+        this.resist = TextFormat.pruneText(resist);
     }
 
     public String getImmu() {
-        return immu;
+        return TextFormat.pruneText(immu);
     }
 
     public void setImmu(String immu) {
-        this.immu = immu;
+        this.immu = TextFormat.pruneText(immu);
     }
 
     public String getConImmu() {
-        return conImmu;
+        return TextFormat.pruneText(conImmu);
     }
 
-    public void setConImmu(String conImmu) {
-        this.conImmu = conImmu;
-    }
+    public void setConImmu(String conImmu) { this.conImmu = TextFormat.pruneText(conImmu); }
 
     public String getSense() {
-        return sense;
+        return TextFormat.pruneText(sense);
     }
 
     public void setSense(String sense) {
-        this.sense = sense;
+        this.sense = TextFormat.pruneText(sense);
     }
 
     public String getLang() {
-        return lang;
+        return TextFormat.pruneText(lang);
     }
 
     public void setLang(String lang) {
-        this.lang = lang;
+        this.lang = TextFormat.pruneText(lang);
     }
 
     public void setScore(int i, int newVal) {
@@ -195,11 +189,11 @@ public class Monster implements Comparable<Monster>, Fightable, LibraryMember {
     }
 
     public String getSpeed() {
-        return speed;
+        return TextFormat.pruneText(speed);
     }
 
     public void setSpeed(String speed) {
-        this.speed = speed;
+        this.speed = TextFormat.pruneText(speed);
     }
 
     public void setScores(int[] scores) {

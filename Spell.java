@@ -29,52 +29,52 @@ public class Spell extends Power implements LibraryMember {
     }
     public Spell(String name, String desc, String school, String castTime, String range, String components, String duration, int level) {
         super(name, desc);
-        this.school = school;
-        this.castTime = castTime;
-        this.range = range;
-        this.components = components;
-        this.duration = duration;
+        this.school = pruneText(school);
+        this.castTime = pruneText(castTime);
+        this.range = pruneText(range);
+        this.components = pruneText(components);
+        this.duration = pruneText(duration);
         this.level = level;
     }
 
     public String getSchool() {
-        return school;
+        return pruneText(school);
     }
 
     public void setSchool(String school) {
-        this.school = school;
+        this.school = pruneText(school);
     }
 
     public String getCastTime() {
-        return castTime;
+        return pruneText(castTime);
     }
 
     public void setCastTime(String castTime) {
-        this.castTime = castTime;
+        this.castTime = pruneText(castTime);
     }
 
     public String getRange() {
-        return range;
+        return pruneText(range);
     }
 
     public void setRange(String range) {
-        this.range = range;
+        this.range = pruneText(range);
     }
 
     public String getComponents() {
-        return components;
+        return pruneText(components);
     }
 
     public void setComponents(String components) {
-        this.components = components;
+        this.components = pruneText(components);
     }
 
     public String getDuration() {
-        return duration;
+        return pruneText(duration);
     }
 
     public void setDuration(String duration) {
-        this.duration = duration;
+        this.duration = pruneText(duration);
     }
 
     public int getLevel() {
