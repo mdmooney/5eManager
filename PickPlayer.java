@@ -46,6 +46,8 @@ public class PickPlayer {
 
         c.gridx=0;
         c.gridy=0;
+        panel.add(menuPanel, c);
+        c.gridy++;
         panel.add(libScroller,c);
 
         dialog.add(BorderLayout.CENTER, panel);

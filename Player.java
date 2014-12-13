@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 @XmlRootElement(name="pcblock")
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(propOrder = {"name", "classes", "ac", "hp", "speed", "level", "scores", "saves", "skills","skillMods", "profs", "lang", "notes", "traitList", "actionList", "spellRefs"})
+@XmlType(propOrder = {"name", "classes", "ac", "hp", "speed", "level", "scores", "saves", "skillMods", "profs", "lang", "notes", "traitList", "actionList", "spellRefs"})
 @XmlSeeAlso({Action.class, Attack.class, Reaction.class, SpellRef.class})
 
 public class Player implements Fightable, LibraryMember {

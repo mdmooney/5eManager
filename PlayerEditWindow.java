@@ -134,6 +134,13 @@ public class PlayerEditWindow {
 
        //prepare save & cancel buttons, add them to bottom button panel
         JButton saveButton = new JButton("Save");
+        saveButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                saveData();
+                dialog.dispose();
+            }
+        });
         JButton cancelButton = new JButton("Cancel");
         cancelButton.addActionListener(new ActionListener() {
             @Override
@@ -502,7 +509,7 @@ public class PlayerEditWindow {
         c.gridx++;
         c.insets = new Insets(0,6,0,6);
         c.fill=GridBagConstraints.VERTICAL;
-        bigPanel.add(new JSeparator(SwingConstants.VERTICAL),c);
+        bigPanel.add(new JSeparator(SwingConstants.VERTICAL), c);
         c.fill=GridBagConstraints.NONE;
         c.insets = new Insets(0,0,0,0);
         c.gridx++;
@@ -660,6 +667,7 @@ public class PlayerEditWindow {
             player.setTraitList(traitArrayList);
             player.setActionList(actionArrayList);
             player.setSpellRefs(spellRefArrayList);
+            player.setNotes(otherNotes.getText());
             dialog.dispose();
         }
         else {
