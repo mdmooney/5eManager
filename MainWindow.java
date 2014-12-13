@@ -110,6 +110,7 @@ public class MainWindow {
         libMenuItem.addActionListener(new LibButtonListener());
 
         JMenuItem pcLibMenuItem = new JMenuItem("Player Library");
+        pcLibMenuItem.addActionListener(new PcLibButtonListener());
 
         JMenuItem spellLibMenuItem = new JMenuItem("Spell Library");
         spellLibMenuItem.addActionListener(new SpellLibButtonListener());
@@ -295,6 +296,13 @@ public class MainWindow {
         public void actionPerformed(ActionEvent e) {
             PickSpell ps = new PickSpell();
             ps.open(frame);
+        }
+    }
+
+    public class PcLibButtonListener implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            PickPlayer pp = new PickPlayer();
+            pp.open(frame);
         }
     }
 

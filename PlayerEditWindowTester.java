@@ -12,5 +12,6 @@ public class PlayerEditWindowTester {
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setVisible(true);
         pew.open(frame);
+        frame.dispose();
     }
 }

@@ -6,6 +6,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * Created by Michael on 01/12/2014.
@@ -18,9 +19,9 @@ public class PlayerEditWindow {
     private JTextField raceField = new JTextField(12);
     private JTextField bgField = new JTextField(12);
     private JTextField alignField = new JTextField(12);
-    private JTextField langField = new JTextField(12);
-    private JTextField profField = new JTextField(12);
-    private JTextField speedField = new JTextField(10);
+    private JTextField langField = new JTextField(14);
+    private JTextField profField = new JTextField(14);
+    private JTextField speedField = new JTextField(14);
     private JTextArea otherNotes = new JTextArea(25, 20);
     private JSpinner strSpin;
     private JSpinner dexSpin;
@@ -61,6 +62,7 @@ public class PlayerEditWindow {
         dialog = new JDialog(parent, "Edit Player", Dialog.ModalityType.APPLICATION_MODAL);
         JPanel bigPanel = new JPanel(new GridBagLayout());
         JPanel topPanel = new JPanel(new GridBagLayout());
+        JPanel bottomPanel = new JPanel();
         JPanel westPanel = new JPanel(new GridBagLayout());
         JPanel eastPanel = new JPanel(new GridBagLayout());
         JPanel notesPanel = new JPanel(new GridBagLayout());
@@ -130,6 +132,19 @@ public class PlayerEditWindow {
             }
         });
 
+       //prepare save & cancel buttons, add them to bottom button panel
+        JButton saveButton = new JButton("Save");
+        JButton cancelButton = new JButton("Cancel");
+        cancelButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                player = null;
+                dialog.dispose();
+            }
+        });
+        bottomPanel.add(saveButton);
+        bottomPanel.add(cancelButton);
+
         //create ability score spinners and modifier labels
         strSpin = new JSpinner(new SpinnerNumberModel(10, 0, 99, 1));
         dexSpin = new JSpinner(new SpinnerNumberModel(10, 0, 99, 1));
@@ -157,6 +172,13 @@ public class PlayerEditWindow {
         addNumberListener(chaSpin);
 
         addNumberListener(profSpin);
+        profSpin.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                updateSkillModifiers();
+                updateLabels();
+            }
+        });
 
         //set up save check boxes and labels
         for (int i = 0; i < 6; i ++) {
@@ -377,7 +399,6 @@ public class PlayerEditWindow {
         miscStatsPanel.add(speedField, c);
         c.gridx=0;
         c.gridwidth= GridBagConstraints.REMAINDER;
-        //c.gridwidth=2;
         c.gridy=0;
         westPanel.add(miscStatsPanel, c);
         c.gridy++;
@@ -389,7 +410,6 @@ public class PlayerEditWindow {
         westPanel.add(profSpin, c);
         c.gridy++;
         c.gridx=0;
-        //c.gridwidth=2;
         westPanel.add(new JLabel("—SAVES—"),c);
         c.gridy++;
         westPanel.add(savePanel, c);
@@ -470,7 +490,6 @@ public class PlayerEditWindow {
         c.gridwidth=1;
         c.gridy = 0;
         c.anchor = GridBagConstraints.NORTH;
-        //c.fill = GridBagConstraints.BOTH;
         bigPanel.add(westPanel, c);
         c.gridx++;
         c.insets = new Insets(0,6,0,6);
@@ -495,6 +514,7 @@ public class PlayerEditWindow {
         //dialog.add(BorderLayout.WEST, westPanel);
         //dialog.add(BorderLayout.EAST, eastPanel);
         dialog.add(BorderLayout.CENTER, bigPanel);
+        dialog.add(BorderLayout.SOUTH, bottomPanel);
 
         dialog.setSize(800, 600);
         dialog.pack();
@@ -525,26 +545,154 @@ public class PlayerEditWindow {
         ((JSpinner.NumberEditor) spin.getEditor()).getTextField().addFocusListener(new NumberFocusListener());
     }
 
-    public void newTraitWindow() {}
+    public void newTraitWindow() {
+        TraitEditWindow tew = new TraitEditWindow(dialog);
+        tew.open();
+        try {
+            Trait tewTrait = tew.getTrait();
+            if (tewTrait != null) {
+                traitArrayList.add(tewTrait);
+            }
+        }
+        catch(NullPointerException nex) {
+            nex.printStackTrace();
+        }
+        updateTraitList();
+    }
 
-    public void editTraitWindow(Trait trait) {}
+    private void editTraitWindow(Trait trait) {
+        TraitEditWindow tew = new TraitEditWindow(dialog, trait);
+        tew.open();
+        Trait tewTrait = tew.getTrait();
+        if (tewTrait != null) {
+            traitArrayList.remove(trait);
+            traitArrayList.add(tewTrait);
+        }
+        updateTraitList();
+    }
 
-    public void deleteSelectedTrait() {}
+    private void deleteSelectedTrait() {
+        if (!traitList.isSelectionEmpty()) {
+            Object[] options = {"Delete", "Cancel"};
+            int choice = JOptionPane.showOptionDialog(dialog, "Permanently delete the selected trait?", "Confirm deletion",
+                    JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+            if (choice == 0) { // if the user selects "Yes" to deleting the selected trait
+                traitArrayList.remove(traitList.getSelectedValue());
+                updateTraitList();
+            }
+        }
+    }
 
-    public void newActionWindow() {}
+    private void updateTraitList() {
+        Collections.sort(traitArrayList);
+        traitList.setListData(traitArrayList.toArray());
+        traitList.revalidate();
+    }
 
-    public void editActionWindow(Action action) {}
+    private void newActionWindow() {
+        ActionEditWindow aew = new ActionEditWindow(dialog);
+        aew.open();
+        try {
+            Action aewAction = aew.getAction();
+            if (aewAction != null) {
+                actionArrayList.add(aewAction);
+            }
+        }
+        catch(NullPointerException nex) {
+            nex.printStackTrace();
+        }
+        updateActionList();
+    }
 
-    public void deleteSelectedAction() {}
 
-    public void spellcastingWindow() {
-        SpellcastingEditWindow sew = new SpellcastingEditWindow();
+
+    private void editActionWindow(Action action) {
+        ActionEditWindow aew = new ActionEditWindow(dialog, action);
+        aew.open();
+        Action aewAction = aew.getAction();
+        if (aewAction != null) {
+            actionArrayList.remove(action);
+            actionArrayList.add(aewAction);
+        }
+        updateActionList();
+    }
+
+    private void updateActionList() {
+        Collections.sort(actionArrayList);
+        actionList.setListData(actionArrayList.toArray());
+        actionList.revalidate();
+    }
+
+    private void deleteSelectedAction() {
+        if (!actionList.isSelectionEmpty()) {
+            Object[] options = {"Delete", "Cancel"};
+            int choice = JOptionPane.showOptionDialog(dialog, "Permanently delete the selected action?", "Confirm deletion",
+                    JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+            if (choice == 0) { // if the user selects "Yes" to deleting the selected action
+                actionArrayList.remove(actionList.getSelectedValue());
+                updateActionList();
+            }
+        }
+    }
+
+    private void spellcastingWindow() {
+        SpellcastingEditWindow sew = new SpellcastingEditWindow(spellRefArrayList);
         sew.open(dialog);
         ArrayList<SpellRef> newSpellRefList = sew.getSpellRefList();
         if (newSpellRefList != null) {
             this.spellRefArrayList = newSpellRefList;
         }
     }
+
+    private void saveData() {
+        if (!nameField.getText().equals("")) {
+            player = new Player();
+            player.setName(nameField.getText());
+            player.setHp((Integer) hpSpin.getValue());
+            player.setAc((Integer) acSpin.getValue());
+            player.setClasses(classField.getText());
+            player.setSpeed(speedField.getText());
+            player.setLevel((Integer) levSpin.getValue());
+            player.setSkillMods(skills);
+            setPlayerScores();
+            player.setSaves(saves);
+            player.setLang(fieldCheck(langField));
+            player.setTraitList(traitArrayList);
+            player.setActionList(actionArrayList);
+            player.setSpellRefs(spellRefArrayList);
+            dialog.dispose();
+        }
+        else {
+            JOptionPane.showMessageDialog(dialog, "At a minimum, you must enter a name to save a player character.");
+        }
+    }
+
+    public Player getPlayer() {
+        return player;
+    }
+
+    private void setPlayerScores() {
+        player.setScore(0, (Integer) strSpin.getValue()); //set Str
+        player.setScore(1, (Integer) dexSpin.getValue()); // set Dex
+        player.setScore(2, (Integer) conSpin.getValue()); // set Con
+        player.setScore(3, (Integer) intSpin.getValue()); // set Int
+        player.setScore(4, (Integer) wisSpin.getValue()); // set Wis
+        player.setScore(5, (Integer) chaSpin.getValue()); // set Cha
+    }
+
+
+    /**
+     * returns the content of a text field if it is not empty.
+     * @param field The text field to be checked.
+     * @return Text contained in the field, or null.
+     */
+    private String fieldCheck(JTextField field) {
+        if (!field.getText().equals("")) {
+            return field.getText();
+        }
+        return null;
+    }
+
 
     /**
      * A listener for the ability score spinners.

@@ -24,14 +24,15 @@ public class PickMonster {
     private final Dimension LIST_DIMENSION = new Dimension(280, 180);
 
 /**
- * This is the monster editing window's primary method. It creates the GUI dialog, and reads from the monster database.
- * Using lists, the user can select from monsters in the external XML file. The monster creation dialog is also accessed through this dialog.
+ * This is the monster editing window's primary method. It creates the GUI dialog.
+ * Using lists, the user can select from monsters in the external XML file (handled by the LibraryManager class).
+ * The monster creation dialog is also accessed through this dialog.
  **/
     public void open(Window parent) {
         entryList = libMan.getEntryList();
 
         addingList = new ArrayList<Monster>();
-        frame = new JDialog(parent, "Stat Library", Dialog.ModalityType.APPLICATION_MODAL);
+        frame = new JDialog(parent, "Monster Library", Dialog.ModalityType.APPLICATION_MODAL);
         frame.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         panel = new JPanel();
         JPanel menuPanel = new JPanel(new GridBagLayout());

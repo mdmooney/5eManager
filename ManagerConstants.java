@@ -18,8 +18,8 @@ public final class ManagerConstants {
     public static final String MONSTER_TEMP_XML = shortPath + "/monster.temp";
     public static final String PLAYER_XML = shortPath + "/player.5em";
     public static final String PLAYER_TEMP_XML = shortPath + "/player.temp";
-    public static final String SPELL_XML = "./spells.5em";
-    public static final String SPELL_TEMP_XML = "./spells.temp";
+    public static final String SPELL_XML = shortPath + "./spells.5em";
+    public static final String SPELL_TEMP_XML = shortPath + "./spells.temp";
 
     public static final String[] DICE_TYPES = {"d4", "d6", "d8", "d10", "d12"};
     public static final String[] SPELL_SCHOOLS = {"Abjuration", "Conjuration", "Divination", "Enchantment", "Evocation", "Illusion", "Necromancy", "Transmutation"};
