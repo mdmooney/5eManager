@@ -39,17 +39,16 @@ public class Player implements Fightable, LibraryMember {
         final JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         JTabbedPane tabbedPane = new JTabbedPane();
-        JTextPane textPane = new JTextPane();
         JTextPane spellPane = new JTextPane();
+        JTextPane textPane = new JTextPane();
         textPane.setEditable(false);
+        spellPane.setEditable(false);
         HTMLEditorKit kit = new HTMLEditorKit();
-        HTMLEditorKit kit2 = new HTMLEditorKit();
         HTMLDocument doc = new HTMLDocument();
         HTMLDocument spellDoc = new HTMLDocument();
         textPane.setEditorKit(kit);
         textPane.setDocument(doc);
-        spellPane.setEditorKit(kit2);
-        spellPane.setDocument(spellDoc);
+
         try {
             kit.insertHTML(doc, 0, "<b>" + name.toUpperCase() + "</b><br>", 0, 0, HTML.Tag.B);
             kit.insertHTML(doc, doc.getLength(), "<i>" + classes + "</i><br>", 0, 0, HTML.Tag.I);
@@ -111,8 +110,66 @@ public class Player implements Fightable, LibraryMember {
         catch (Exception ex) {
             ex.printStackTrace();
         }
-        JScrollPane textPaneScroll = new JScrollPane(textPane);
+
+        if (spellRefs.size() > 0) {
+            try {
+                spellPane.setEditorKit(kit);
+                spellPane.setDocument(spellDoc);
+                kit.insertHTML(spellDoc, 0, "<b>" + name.toUpperCase() + "</b><br>", 0, 0, HTML.Tag.B);
+                kit.insertHTML(spellDoc, spellDoc.getLength(), "<i>" + classes + "</i><br>", 0, 0, HTML.Tag.I);
+                kit.insertHTML(spellDoc, spellDoc.getLength(), "<hr>", 0, 0, HTML.Tag.HR);
+                for (SpellRef spellRef : spellRefs) {
+                    kit.insertHTML(spellDoc, spellDoc.getLength(), "<b><u>" + spellRef.getCasterClass() + "</u></b><br>", 0, 0, HTML.Tag.B);
+                    addBasicLine(kit, spellDoc, "Casting Ability", ManagerConstants.LONG_ABILITY_NAMES[spellRef.getCastAbility()]);
+                    addBasicLine(kit, spellDoc, "Spell Save DC", "" + (8 + proficiency + (scores[spellRef.getCastAbility()] / 2 - 5)));
+                    addBasicLine(kit, spellDoc, "Spell Attack", "" +  (proficiency + (scores[spellRef.getCastAbility()] / 2 - 5)));
+                    //add cantrips
+                    if (!spellRef.getSpells()[0].isEmpty()) {
+                        String[] splitSpells = spellRef.getSpells()[0].split("\n");
+                        String spellString = "";
+                        for (int j = 0; j < splitSpells.length; j++) {
+                            String spell = splitSpells[j];
+                            spellString += "<font color='blue'><i><a href='spell:" + spell + "'>"+ spell + "</a></i></font>";
+                            if (j != splitSpells.length - 1) spellString += ", ";
+                        }
+                        kit.insertHTML(spellDoc, spellDoc.getLength(), "<i>Cantrips (at will): </i>" + spellString + "<br>", 0, 0, HTML.Tag.I);
+                    }
+                    //add levelled spells
+                    for (int i = 0; i < 9; i++) {
+                        if (!spellRef.getSpells()[i+1].isEmpty()) {
+                            String[] splitSpells = spellRef.getSpells()[i+1].split("\n");
+                            String spellString = "";
+                            for (int j = 0; j < splitSpells.length; j++) {
+                                String spell = splitSpells[j];
+                                spellString += "<font color='blue'><i><a href='spell:" + spell + "'>"+ spell + "</a></i></font>";
+                                if (j != splitSpells.length - 1) spellString += ", ";
+                            }
+                            kit.insertHTML(spellDoc, spellDoc.getLength(), "<i>Level " + (i + 1) + " (" + spellRef.getSlots()[i] + " slots): </i>" + spellString + "<br>", 0, 0, HTML.Tag.I);
+                            //kit.insertHTML(spellDoc, spellDoc.getLength(), spellString, 0, 0, null);
+                        }
+                    }
+                    kit.insertHTML(spellDoc, spellDoc.getLength(), "<hr>", 0, 0, HTML.Tag.HR);
+                }
+            }
+            catch (Exception ex) {
+                ex.printStackTrace();
+            }
+            spellPane.addHyperlinkListener(new HyperlinkListener() {
+                public void hyperlinkUpdate(HyperlinkEvent e) {
+                    if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+                        if (e.getDescription().startsWith("spell:")) { //tag to help protect against false spell tags added by the user
+                            String spellName = e.getDescription();
+                            PickSpell ps = new PickSpell();
+                            ps.jumpTo(spellName.substring(6, spellName.length()), SwingUtilities.windowForComponent(panel));
+                        }
+                    }
+                }
+            });
+        }
+        JScrollPane textPaneScroll = new JScrollPane(textPane, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        JScrollPane spellPaneScroll = new JScrollPane(spellPane, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         tabbedPane.add(textPaneScroll, "Main");
+        if(spellPane.getText().length() != 0) { tabbedPane.add(spellPaneScroll, "Spellcasting"); }
         panel.add(tabbedPane);
         return panel;
     }

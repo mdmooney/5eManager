@@ -23,21 +23,26 @@ public class PickMonster extends PickFightable {
     }
 
     protected void editEntry() {
-        int editMonIndex = ((LibEntry) libList.getSelectedValue()).getIndex();
-        ArrayList<Integer> deleteIndex = new ArrayList<Integer>();
-        deleteIndex.add(editMonIndex);
-        Monster editMon = (Monster) libMan.loadMember(editMonIndex);
-        MonEditWindow mew = new MonEditWindow(editMon);
-        mew.open(frame);
-        Monster newMon = mew.getMon();
-        if (newMon != null) {
-            int saveIndex = libList.getSelectedIndex();
-            libMan.removeFromLibrary(deleteIndex);
-            entryList = libMan.getEntryList();
-            libMan.addToLibrary(newMon);
-            refreshLibraryList();
-            panel.revalidate();
-            libList.setSelectedIndex(saveIndex);
+        try {
+            int editMonIndex = ((LibEntry) libList.getSelectedValue()).getIndex();
+            ArrayList<Integer> deleteIndex = new ArrayList<Integer>();
+            deleteIndex.add(editMonIndex);
+            Monster editMon = (Monster) libMan.loadMember(editMonIndex);
+            MonEditWindow mew = new MonEditWindow(editMon);
+            mew.open(frame);
+            Monster newMon = mew.getMon();
+            if (newMon != null) {
+                int saveIndex = libList.getSelectedIndex();
+                libMan.removeFromLibrary(deleteIndex);
+                entryList = libMan.getEntryList();
+                libMan.addToLibrary(newMon);
+                refreshLibraryList();
+                panel.revalidate();
+                libList.setSelectedIndex(saveIndex);
+            }
+        }
+        catch (NullPointerException nex) {
+            newEntry();
         }
     }
 

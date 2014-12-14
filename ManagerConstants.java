@@ -25,6 +25,7 @@ public final class ManagerConstants {
     public static final String[] SPELL_SCHOOLS = {"Abjuration", "Conjuration", "Divination", "Enchantment", "Evocation", "Illusion", "Necromancy", "Transmutation"};
 
     public static final String[] SHORT_ABILITY_NAMES = {"STR", "DEX", "CON", "INT", "WIS", "CHA"};
+    public static final String[] LONG_ABILITY_NAMES = {"Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"};
 
     static final Map<Double, Integer> XP_VALS;
     static {

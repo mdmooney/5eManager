@@ -1,4 +1,5 @@
 import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader;
+import sun.rmi.log.LogInputStream;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -26,6 +27,7 @@ public class MainWindow {
     private JTextArea blankTextArea = new JTextArea(20, 20);
     private JLabel currentHpLabel = new JLabel(" / ");
     private HashMap<Participant, Integer> addedPlayers;
+    private final Dimension LIST_DIMENSION = new Dimension(290, 400);
 
     public static void main(String[] args) {
      MainWindow mw = new MainWindow();
@@ -216,24 +218,35 @@ public class MainWindow {
         encounterMembers = new JList();
         encounterMembers.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         encounterMembers.addListSelectionListener(new EncSelectionListener());
-        JScrollPane encScroller = new JScrollPane(encounterMembers);
-        encScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        encScroller.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+        JScrollPane encScroller = new JScrollPane(encounterMembers, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        JPanel encPanel = new JPanel(new GridBagLayout());
 
-        c.gridx = 0;
+        c.gridx=0;
         c.gridy=0;
         c.weightx=1;
         c.weighty=1;
+        c.fill=GridBagConstraints.BOTH;
+        c.anchor=GridBagConstraints.NORTHWEST;
+        encPanel.add(encScroller,c);
+
+        //set preferred sizes for the left and right panels so that scaling works correctly
+        encScroller.setPreferredSize(LIST_DIMENSION);
+        blockPanel.setPreferredSize(LIST_DIMENSION);
+
+        c.gridx = 0;
+        c.gridy=0;
+        c.weightx=0;
+        c.weighty=1;
         c.fill = GridBagConstraints.BOTH;
         c.anchor=GridBagConstraints.WEST;
-        centPanel.add(encScroller,c);
+        centPanel.add(encPanel,c);
         c.gridx++;
         c.weightx=0;
-        c.anchor=GridBagConstraints.CENTER;
+        c.gridwidth=GridBagConstraints.RELATIVE;
         centPanel.add(controlPanel,c);
         c.gridx++;
         c.weightx=1;
-        c.anchor=GridBagConstraints.EAST;
+        c.gridwidth=GridBagConstraints.REMAINDER;
         centPanel.add(blockPanel,c);
 
         frame.add(BorderLayout.CENTER, centPanel);
@@ -241,6 +254,7 @@ public class MainWindow {
 
         frame.pack();
         frame.setMinimumSize(frame.getSize());
+
         frame.setVisible(true);
     }
 
