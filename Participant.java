@@ -13,15 +13,15 @@ public class Participant implements Comparable<Participant> {
     private int currentHp;
     private int maxHp;
     private int initiative;
-    private Monster refMon;
+    private Fightable fightable;
     private String name;
     private String notes;
 
-    public Participant(Monster refMon) {
-        this.refMon = refMon;
-        this.currentHp = refMon.getHp();
-        this.maxHp = refMon.getHp();
-        this.name = refMon.getName();
+    public Participant(Fightable fightable) {
+        this.fightable = fightable;
+        this.currentHp = fightable.getHp();
+        this.maxHp = fightable.getHp();
+        this.name = fightable.getName();
     }
 
     public int compareTo(Participant p) {
@@ -40,19 +40,21 @@ public class Participant implements Comparable<Participant> {
         return name;
     }
 
-    public String getBaseName() {return "" + refMon.getName();}
+    public String getBaseName() {return "" + fightable.getName();}
 
     public JPanel getBlock() {
-        return refMon.getBlockPanel();
+        return fightable.getBlockPanel();
     }
 
     public void getRandomHp() {
-        this.maxHp = refMon.getRandomHp();
-        this.currentHp = this.maxHp;
+        if (fightable.getClass() == Monster.class) {
+            this.maxHp = ((Monster) fightable).getRandomHp();
+            this.currentHp = this.maxHp;
+        }
     }
 
-    public int rollIniative() {
-        return new Random().nextInt(19) + 1 + (refMon.getScore(1) / 2 - 5) ;
+    public int rollInitiative() {
+        return new Random().nextInt(19) + 1 + (fightable.getInitiative());
     }
 
     public int getInitiative() {
@@ -72,5 +74,9 @@ public class Participant implements Comparable<Participant> {
     }
     public void setCurrentHp(int currentHp) {
         this.currentHp = currentHp;
+    }
+
+    public java.lang.Class getFightableClass() {
+        return this.fightable.getClass();
     }
 }

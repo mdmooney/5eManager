@@ -481,6 +481,10 @@ public class Monster implements Comparable<Monster>, Fightable, LibraryMember {
 
     }
 
+    public int getInitiative() {
+        return this.scores[1] / 2 - 5;
+    }
+
     private void addBasicLine(HTMLEditorKit kit, HTMLDocument doc, String name, int variable) {
         addBasicLine(kit, doc, name, "" + variable);
     }

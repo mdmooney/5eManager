@@ -4,12 +4,15 @@ import java.util.ArrayList;
 
 @XmlRootElement(name="pcblock")
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(propOrder = {"name", "classes", "ac", "hp", "speed", "level", "scores", "saves", "skillMods", "profs", "lang", "notes", "traitList", "actionList", "spellRefs"})
+@XmlType(propOrder = {"name", "race", "classes", "background", "alignment", "ac", "hp", "speed", "initiative", "level", "proficiency", "scores", "saves", "skillMods", "profs", "lang", "notes", "traitList", "actionList", "spellRefs"})
 @XmlSeeAlso({Action.class, Attack.class, Reaction.class, SpellRef.class})
 
 public class Player implements Fightable, LibraryMember {
     private String name;
     private String classes;
+    private String race;
+    private String background;
+    private String alignment;
     private int[] saves = new int[6];
     private String profs;
     private String lang;
@@ -18,8 +21,10 @@ public class Player implements Fightable, LibraryMember {
     private ArrayList<SpellRef> spellRefs;
     private int hp;
     private int ac;
+    private int proficiency;
     private int[] scores = new int[6];
     private int[] skillMods = new int[18];
+    private int initiative;
     private String speed;
     private String notes;
     private int level;
@@ -29,7 +34,7 @@ public class Player implements Fightable, LibraryMember {
     } //todo: actually make this do something useful
 
     public int getHp() {
-        return 1;
+        return hp;
     }
 
     public String getName() {
@@ -88,6 +93,10 @@ public class Player implements Fightable, LibraryMember {
         this.scores[pos] = score;
     }
 
+    public int getScore(int pos) {
+        return scores[pos];
+    }
+
     public void setSkillMods(int[] skillMods) {
         this.skillMods = skillMods;
     }
@@ -98,6 +107,104 @@ public class Player implements Fightable, LibraryMember {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    public void setInitiative(int initiative) {
+        this.initiative = initiative;
+    }
+
+    public String getClasses() {
+        return classes;
+    }
+
+    public int[] getSaves() {
+        return saves;
+    }
+
+    public String getProfs() {
+        return profs;
+    }
+
+    public String getLang() {
+        return lang;
+    }
+
+    public ArrayList<Trait> getTraitList() {
+        return traitList;
+    }
+
+    public ArrayList<Action> getActionList() {
+        return actionList;
+    }
+
+    public ArrayList<SpellRef> getSpellRefs() {
+        return spellRefs;
+    }
+
+    public int getAc() {
+        return ac;
+    }
+
+    public int[] getScores() {
+        return scores;
+    }
+
+    public int[] getSkillMods() {
+        return skillMods;
+    }
+
+    public String getSpeed() {
+        return speed;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public int getLevel() {
+        return level;
+    }
+
+    public String getBackground() {
+        return background;
+    }
+
+    public String getRace() {
+        return race;
+    }
+
+    public String getAlignment() {
+        return alignment;
+    }
+
+    public void setRace(String race) {
+        this.race = race;
+    }
+
+    public void setBackground(String background) {
+        this.background = background;
+    }
+
+    public void setAlignment(String alignment) {
+        this.alignment = alignment;
+    }
+
+    public int getInitiative() {
+        return initiative;
+    }
+
+
+    public int getProficiency() {
+        return proficiency;
+    }
+
+    public void setProficiency(int proficiency) {
+        this.proficiency = proficiency;
+    }
+
+
+    public String toString() {
+        return this.name;
     }
 
     protected String pruneText(String entryString) {

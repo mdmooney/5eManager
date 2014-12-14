@@ -296,4 +296,8 @@ public class LibraryManager {
         tempFile.renameTo(dbFile);
     }
 
+    public LibraryMember getDummyMember() {
+        return dummyMember;
+    }
+
 }

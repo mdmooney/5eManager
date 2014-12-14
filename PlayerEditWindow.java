@@ -58,6 +58,14 @@ public class PlayerEditWindow {
 
     private final int[][] SKILL_ARRAYS = {STR_SKILLS,DEX_SKILLS,CON_SKILLS,INT_SKILLS,WIS_SKILLS,CHA_SKILLS};
 
+    public PlayerEditWindow() {
+        //nope, nothing here
+    }
+
+    public PlayerEditWindow(Player player) {
+        this.player = player;
+    }
+
     public void open(Window parent) {
         dialog = new JDialog(parent, "Edit Player", Dialog.ModalityType.APPLICATION_MODAL);
         JPanel bigPanel = new JPanel(new GridBagLayout());
@@ -421,9 +429,7 @@ public class PlayerEditWindow {
         c.gridy++;
         westPanel.add(savePanel, c);
         c.gridx++;
-        //c.gridwidth=2;
         c.gridheight=1;
-        //westPanel.add(skillPanel, c);
         c.gridy--;
         westPanel.add(new JLabel("—SKILLS—"),c);
         c.gridy++;
@@ -518,16 +524,78 @@ public class PlayerEditWindow {
         savePanel.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
 
         dialog.add(BorderLayout.NORTH, topPanel);
-        //dialog.add(BorderLayout.WEST, westPanel);
-        //dialog.add(BorderLayout.EAST, eastPanel);
         dialog.add(BorderLayout.CENTER, bigPanel);
         dialog.add(BorderLayout.SOUTH, bottomPanel);
+
+        //if there's a player reference already in there (i.e. if we're in "Edit" or "Copy" mode), set it up
+        if (this.player != null) {
+            try {
+                traitArrayList.addAll(player.getTraitList());
+
+            }
+            catch (NullPointerException nex) {
+                traitArrayList = new ArrayList<Trait>();
+            }
+            try {
+                actionArrayList.addAll(player.getActionList());
+            }
+            catch (NullPointerException nex) {
+                actionArrayList = new ArrayList<Action>();
+            }
+            try {
+                spellRefArrayList.addAll(player.getSpellRefs());
+            }
+            catch (NullPointerException nex) {
+                spellRefArrayList = new ArrayList<SpellRef>();
+            }
+            fillFields();
+        }
 
         dialog.setSize(800, 600);
         dialog.pack();
         dialog.setLocationRelativeTo(parent);
         dialog.setResizable(false);
         dialog.setVisible(true);
+    }
+
+    private void fillFields() {
+        nameField.setText(player.getName());
+        classField.setText(player.getClasses());
+        raceField.setText(player.getRace());
+        bgField.setText(player.getBackground());
+        alignField.setText(player.getAlignment());
+        langField.setText(player.getLang());
+        profField.setText(player.getProfs());
+        speedField.setText(player.getSpeed());
+        otherNotes.setText(player.getNotes());
+        strSpin.setValue(player.getScore(0));
+        dexSpin.setValue(player.getScore(1));
+        conSpin.setValue(player.getScore(2));
+        intSpin.setValue(player.getScore(3));
+        wisSpin.setValue(player.getScore(4));
+        chaSpin.setValue(player.getScore(5));
+        hpSpin.setValue(player.getHp());
+        acSpin.setValue(player.getAc());
+        levSpin.setValue(player.getLevel());
+        initSpin.setValue(player.getInitiative());
+        profSpin.setValue(player.getProficiency());
+        for (int i = 0; i < savesBoxes.size(); i++) {
+            if (player.getSaves()[i] >= modifiers[i] + player.getProficiency()) {
+                savesBoxes.get(i).setSelected(true);
+            }
+        }
+        for (int i = 0; i < SKILL_ARRAYS.length; i++) {
+            for (int j = 0; j < SKILL_ARRAYS[i].length; j++) {
+                if (player.getSkillMods()[SKILL_ARRAYS[i][j]] >= modifiers[i] + player.getProficiency()) {
+                    skillsBoxes.get(SKILL_ARRAYS[i][j]).setSelected(true);
+                }
+            }
+        }
+        updateSkillModifiers();
+        updateLabels();
+        updateTraitList();
+        updateActionList();
+        //updateSpellcasting();
     }
 
     private void updateSkillModifiers() {
@@ -658,7 +726,11 @@ public class PlayerEditWindow {
             player.setHp((Integer) hpSpin.getValue());
             player.setAc((Integer) acSpin.getValue());
             player.setClasses(classField.getText());
+            player.setRace(raceField.getText());
+            player.setBackground(bgField.getText());
+            player.setAlignment(alignField.getText());
             player.setSpeed(speedField.getText());
+            player.setInitiative((Integer) initSpin.getValue());
             player.setLevel((Integer) levSpin.getValue());
             player.setSkillMods(skills);
             setPlayerScores();
@@ -668,6 +740,8 @@ public class PlayerEditWindow {
             player.setActionList(actionArrayList);
             player.setSpellRefs(spellRefArrayList);
             player.setNotes(otherNotes.getText());
+            player.setProfs(profField.getText());
+            player.setProficiency((Integer) profSpin.getValue());
             dialog.dispose();
         }
         else {

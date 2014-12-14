@@ -108,6 +108,7 @@ public class SpellcastingEditWindow {
 
     public class SaveSpellsListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
+            spellRefList = new ArrayList<SpellRef>();
             for (Component comp : tabbedPane.getComponents()) {
                 SpellRef newSpellRef = new SpellRef();
                 CastingPanel castPanel = (CastingPanel) comp;
@@ -115,7 +116,6 @@ public class SpellcastingEditWindow {
                 newSpellRef.setSpells(castPanel.getSpells());
                 newSpellRef.setCastAbility(castPanel.getCastingMod());
                 newSpellRef.setCasterClass(castPanel.getClassName());
-                newSpellRef.testPrint();
                 spellRefList.add(newSpellRef);
             }
             dialog.dispose();

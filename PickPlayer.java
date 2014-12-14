@@ -1,76 +1,129 @@
-import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.ArrayList;
+import java.util.*;
+import java.util.List;
 
 /**
  * Created by Michael on 2014-12-12.
  */
-public class PickPlayer {
-    private LibraryManager libMan = new LibraryManager(LibraryManager.LibType.PLAYER);
-    private ArrayList<Participant> participants;
-    private ArrayList<LibEntry> entryList;
-    private JList libList;
-    private JDialog dialog;
-    private JPanel panel;
+public class PickPlayer extends PickFightable {
 
-    public void open(Window parent) {
-        entryList = libMan.getEntryList();
-        JPanel menuPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints c = new GridBagConstraints();
+    HashMap<Participant, Integer> addedPlayers;
 
-        //create buttons for the library menu panel, add listeners, put them in the panel
-        JButton newButton = new JButton("New");
-        JButton editButton = new JButton("Edit");
-        JButton copyButton = new JButton("Copy");
-        JButton delButton = new JButton("Delete");
-        menuPanel.add(newButton, c);
-        menuPanel.add(editButton, c);
-        menuPanel.add(copyButton, c);
-        menuPanel.add(delButton, c);
-        newButton.addActionListener(new NewPcListener());
-        //editButton.addActionListener(new EditPcListener());
-        //copyButton.addActionListener(new CopyPcListener());
-        //delButton.addActionListener(new DelPcListener());
-
-        dialog = new JDialog(parent, "Player Library", Dialog.ModalityType.APPLICATION_MODAL);
-
-        panel = new JPanel(new GridBagLayout());
-
-        libList = new JList();
-        JScrollPane libScroller = new JScrollPane(libList, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-
-        //refresh the library list by getting a list of PCs in the database
-        refreshLibraryList();
-
-        c.gridx=0;
-        c.gridy=0;
-        panel.add(menuPanel, c);
-        c.gridy++;
-        panel.add(libScroller,c);
-
-        dialog.add(BorderLayout.CENTER, panel);
-        dialog.pack();
-        dialog.setVisible(true);
+    public PickPlayer(HashMap<Participant, Integer> addedPlayers) {
+        this.addedPlayers = addedPlayers;
     }
 
-    private void refreshLibraryList() {
-        entryList = libMan.getEntryList();
-        libList.setListData(entryList.toArray());
-        libList.revalidate();
+    protected void pickLibrary() {
+        windowName = "Player Library";
+        libMan = new LibraryManager(LibraryManager.LibType.PLAYER);
     }
 
-    class NewPcListener implements ActionListener {
-        public void actionPerformed(ActionEvent e) {
-            PlayerEditWindow pew = new PlayerEditWindow();
-            pew.open(dialog);
-            Player newPc = pew.getPlayer();
-            if (newPc != null) {
-                libMan.addToLibrary(newPc);
-                refreshLibraryList();
-                panel.revalidate();
-            }
+    protected void newEntry() {
+        PlayerEditWindow pew = new PlayerEditWindow();
+        pew.open(frame);
+        Player newPlayer = pew.getPlayer();
+        if (newPlayer != null) {
+            libMan.addToLibrary(newPlayer);
+            refreshLibraryList();
+            panel.revalidate();
         }
     }
+
+    protected void editEntry() {
+        int editPlayerIndex = ((LibEntry) libList.getSelectedValue()).getIndex();
+        ArrayList<Integer> deleteIndex = new ArrayList<Integer>();
+        deleteIndex.add(editPlayerIndex);
+        Player editPlayer = (Player) libMan.loadMember(editPlayerIndex);
+        PlayerEditWindow pew = new PlayerEditWindow(editPlayer);
+        pew.open(frame);
+        Player newPlayer = pew.getPlayer();
+        if (newPlayer != null) {
+            int saveIndex = libList.getSelectedIndex();
+            libMan.removeFromLibrary(deleteIndex);
+            entryList = libMan.getEntryList();
+            libMan.addToLibrary(newPlayer);
+            refreshLibraryList();
+            panel.revalidate();
+            libList.setSelectedIndex(saveIndex);
+        }
+    }
+
+    protected void copyEntry() {
+        Player copyPlayer = (Player) libMan.loadMember(((LibEntry) libList.getSelectedValue()).getIndex());
+        PlayerEditWindow pew = new PlayerEditWindow(copyPlayer);
+        pew.open(frame);
+        Player newPlayer = pew.getPlayer();
+        if (newPlayer != null) {
+            libMan.addToLibrary(newPlayer);
+            refreshLibraryList();
+            panel.revalidate();
+        }
+    }
+
+    @Override
+    protected void addSelection() {
+        List<Participant> addParticipant = new ArrayList<Participant>();
+        for(int i = 0; i < libList.getSelectedValuesList().size(); i++) {
+            int index = ((LibEntry) libList.getSelectedValuesList().get(i)).getIndex();
+            if (!addedPlayers.containsValue(index)) {
+                Participant adding = new Participant((Fightable) libMan.loadMember(index));
+                addParticipant.add(adding);
+                addedPlayers.put(adding, index);
+            }
+        }
+        for (Participant part : addParticipant) {
+            //addingList.add(fight);
+            addingList.add(part);
+        }
+        updateAddList();
+    }
+
+    private void makeParticipants() {
+        Collections.sort(addingList);
+        participants = addingList;
+    }
+
+    @Override
+    protected void addToEncounter() {
+        frame.dispose();
+    }
+
+    @Override
+    protected void removeSelection() {
+        List<Participant> remParts = encList.getSelectedValuesList();
+        for (Participant part : remParts) {
+            addingList.remove(part);
+            addedPlayers.remove(part);
+        }
+        updateAddList();
+        makeParticipants();
+    }
+
+    @Override
+    protected void updateAddList() {
+        if (addingList.size() == 0 && !addedPlayers.isEmpty()) {
+            System.out.println(addedPlayers.values());
+            for (int i = 0; i < addedPlayers.keySet().size(); i++) {
+                int loadIndex = (Integer) addedPlayers.values().toArray()[i];
+                Participant adding = (Participant) addedPlayers.keySet().toArray()[i];
+                //addingList.add(adding);
+                addingList.add(adding);
+            }
+            //Collections.sort(addingList, new FightableCompare());
+            Collections.sort(addingList);
+            updateAddList();
+        }
+        else {
+            Collections.sort(addingList);
+            super.updateAddList();
+        }
+        makeParticipants();
+    }
+
+    private class FightableCompare implements Comparator<Fightable> {
+        public int compare(Fightable one, Fightable two) {
+            return one.getName().compareToIgnoreCase(two.getName());
+        }
+    }
+
 }

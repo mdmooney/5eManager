@@ -10,6 +10,7 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import javax.swing.UIManager.*;
 
 /**
@@ -24,6 +25,7 @@ public class MainWindow {
     private JPanel blockPanel;
     private JTextArea blankTextArea = new JTextArea(20, 20);
     private JLabel currentHpLabel = new JLabel(" / ");
+    private HashMap<Participant, Integer> addedPlayers;
 
     public static void main(String[] args) {
      MainWindow mw = new MainWindow();
@@ -55,6 +57,7 @@ public class MainWindow {
             e.printStackTrace();
         }
 
+        addedPlayers = new HashMap<Participant, Integer>();
         frame = new JFrame("5e Manager");
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         JPanel centPanel = new JPanel(new GridBagLayout());
@@ -120,7 +123,7 @@ public class MainWindow {
             @Override
             public void actionPerformed(ActionEvent e) {
                 for(Participant part : participants) {
-                    part.setInitiative(part.rollIniative());
+                    part.setInitiative(part.rollInitiative());
                 }
                 refreshInitiative();
             }
@@ -167,7 +170,7 @@ public class MainWindow {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (!encounterMembers.isSelectionEmpty()) {
-                    initSpin.setValue(((Participant) encounterMembers.getSelectedValue()).rollIniative());
+                    initSpin.setValue(((Participant) encounterMembers.getSelectedValue()).rollInitiative());
                 }
             }
         });
@@ -249,11 +252,12 @@ public class MainWindow {
         }
         int sameCount = 1;
         for (int i = 0; i < participants.size(); i++) {
-            if (i>0 && participants.get(i).getBaseName().equals(participants.get(i-1).getBaseName())) {
-                sameCount++;
+            if (!participants.get(i).getFightableClass().equals(Player.class)) {
+                if (i > 0 && participants.get(i).getBaseName().equals(participants.get(i - 1).getBaseName())) {
+                    sameCount++;
+                } else sameCount = 1;
+                participants.get(i).setName(participants.get(i).getBaseName() + " #" + sameCount);
             }
-            else sameCount = 1;
-            participants.get(i).setName(participants.get(i).getBaseName() + " #" + sameCount);
         }
         //end renaming
         Collections.sort(participants, new InitiativeCompare());
@@ -301,8 +305,20 @@ public class MainWindow {
 
     public class PcLibButtonListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
-            PickPlayer pp = new PickPlayer();
+            int range = participants.size();
+            ArrayList<Participant> newParticipants = new ArrayList<Participant>();
+            for (int i = 0; i < range; i ++) {
+                if (!participants.get(i).getFightableClass().equals(Player.class)) {
+                    newParticipants.add(participants.get(i));
+                }
+            }
+            participants = newParticipants;
+            PickPlayer pp = new PickPlayer(addedPlayers);
             pp.open(frame);
+            if (pp.getParticipants() != null) {
+                participants.addAll(pp.getParticipants());
+            }
+            updateParticipants();
         }
     }
 
