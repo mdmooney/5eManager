@@ -1,5 +1,11 @@
 import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+import javax.swing.text.html.HTML;
+import javax.swing.text.html.HTMLDocument;
+import javax.swing.text.html.HTMLEditorKit;
 import javax.xml.bind.annotation.*;
+import javax.xml.soap.Text;
 import java.util.ArrayList;
 
 @XmlRootElement(name="pcblock")
@@ -16,9 +22,9 @@ public class Player implements Fightable, LibraryMember {
     private int[] saves = new int[6];
     private String profs;
     private String lang;
-    private ArrayList<Trait> traitList;
-    private ArrayList<Action> actionList;
-    private ArrayList<SpellRef> spellRefs;
+    private ArrayList<Trait> traitList = new ArrayList<Trait>();
+    private ArrayList<Action> actionList = new ArrayList<Action>();
+    private ArrayList<SpellRef> spellRefs = new ArrayList<SpellRef>();
     private int hp;
     private int ac;
     private int proficiency;
@@ -30,8 +36,123 @@ public class Player implements Fightable, LibraryMember {
     private int level;
 
     public JPanel getBlockPanel() {
-        return new JPanel();
-    } //todo: actually make this do something useful
+        final JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        JTabbedPane tabbedPane = new JTabbedPane();
+        JTextPane textPane = new JTextPane();
+        JTextPane spellPane = new JTextPane();
+        textPane.setEditable(false);
+        HTMLEditorKit kit = new HTMLEditorKit();
+        HTMLEditorKit kit2 = new HTMLEditorKit();
+        HTMLDocument doc = new HTMLDocument();
+        HTMLDocument spellDoc = new HTMLDocument();
+        textPane.setEditorKit(kit);
+        textPane.setDocument(doc);
+        spellPane.setEditorKit(kit2);
+        spellPane.setDocument(spellDoc);
+        try {
+            kit.insertHTML(doc, 0, "<b>" + name.toUpperCase() + "</b><br>", 0, 0, HTML.Tag.B);
+            kit.insertHTML(doc, doc.getLength(), "<i>" + classes + "</i><br>", 0, 0, HTML.Tag.I);
+            kit.insertHTML(doc, doc.getLength(), "<hr>", 0, 0, HTML.Tag.HR);
+            addBasicLine(kit, doc, "AC", "" + ac);
+            addBasicLine(kit, doc, "HP", "" + hp);
+            addBasicLine(kit, doc, "Speed", speed);
+            kit.insertHTML(doc, doc.getLength(), "<hr>", 0, 0, HTML.Tag.HR);
+            kit.insertHTML(doc, doc.getLength(), abilityTable(), 0, 0, null);
+            kit.insertHTML(doc, doc.getLength(), "<hr>", 0, 0, HTML.Tag.HR);
+            kit.insertHTML(doc, doc.getLength(), "<hr>", 0, 0, HTML.Tag.HR);
+
+            boolean castsSpells = false;
+            for (Trait trait : traitList) {
+                kit.insertHTML(doc, doc.getLength(), "<b><i>" + trait.getName() + ". </b></i>" + trait.getDescription().replace("\n", "<br>") + "<br>", 0, 0, HTML.Tag.B);
+            }
+
+            if (castsSpells) textPane.addHyperlinkListener(new HyperlinkListener() {
+                @Override
+                public void hyperlinkUpdate(HyperlinkEvent e) {
+                    if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+                        if (e.getDescription().startsWith("spell:")) { //tag to help protect against false spell tags added by the user
+                            String spellName = e.getDescription();
+                            PickSpell ps = new PickSpell();
+                            ps.jumpTo(spellName.substring(6, spellName.length()), SwingUtilities.windowForComponent(panel));
+                        }
+                    }
+                }
+            });
+
+
+            boolean hasReaction = false;
+
+            if (actionList.size() > 0) {
+                kit.insertHTML(doc, doc.getLength(), "<br><b>ACTIONS</b>", 0, 0, HTML.Tag.BR);
+                kit.insertHTML(doc, doc.getLength(), "<hr>", 0, 0, HTML.Tag.HR);
+                for (int i = 0; i < actionList.size(); i++) {
+                    if (actionList.get(i) instanceof Attack) {
+                        Attack atk = (Attack) actionList.get(i);
+                        kit.insertHTML(doc, doc.getLength(), "<b><i>" + atk.getName() + ". </b></i><i>" + atk.getType() + " Attack: </i> +" + atk.getBonus() + " to hit. " + atk.getDescription().replace("\n", "<br>").replace("Hit:", "<i>Hit:</i>")
+                                + "<br><br>", 0, 0, HTML.Tag.B);
+                    } else if (actionList.get(i) instanceof Reaction) {
+                        hasReaction = true;
+                    } else if (!(actionList.get(i) instanceof Reaction)) {
+                        kit.insertHTML(doc, doc.getLength(), "<b><i>" + actionList.get(i).getName() + ". </b></i>" + actionList.get(i).getDescription().replace("\n", "<br>") + "<br><br>", 0, 0, HTML.Tag.B);
+                    }
+                }
+            }
+            if (hasReaction) {
+                kit.insertHTML(doc, doc.getLength(), "<b>REACTIONS</b>", 0, 0, null);
+                kit.insertHTML(doc, doc.getLength(), "<hr>", 0, 0, HTML.Tag.HR);
+                for (int i = 0; i < actionList.size(); i++) {
+                    if (actionList.get(i) instanceof Reaction) {
+                        kit.insertHTML(doc, doc.getLength(), "<b><i>" + actionList.get(i).getName() + ". </b></i>" + actionList.get(i).getDescription().replace("\n", "<br>") + "<br>", 0, 0, HTML.Tag.B);
+                    }
+                }
+            }
+        }
+        catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        JScrollPane textPaneScroll = new JScrollPane(textPane);
+        tabbedPane.add(textPaneScroll, "Main");
+        panel.add(tabbedPane);
+        return panel;
+    }
+
+    private void addBasicLine(HTMLEditorKit kit, HTMLDocument doc, String name, String variable) {
+        if (variable != null) {
+            try {
+                kit.insertHTML(doc, doc.getLength(), "<b>" + name + ": </b>" + variable + "<br>", 0, 0, HTML.Tag.B);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    public String[] getMods() {
+        String[] mods = new String[6];
+        for (int i = 0; i < mods.length; i++) {
+            int mod = scores[i] /2 - 5;
+            mods[i] = mod > 0 ? "+" + mod : "" + mod;
+        }
+        return mods;
+    }
+
+    private String abilityTable() {
+        String[] mods = getMods();
+        String retString = "<table cellpadding='3' style='font-size: 11'><tr><td><b>STR</b></td>" +
+                "<td><b>DEX</b></td>" +
+                "<td><b>CON</b></td>" +
+                "<td><b>INT</b></td>" +
+                "<td><b>WIS</b></td>" +
+                "<td><b>CHA</b></td></tr>";
+        retString += "<tr><td>" + scores[0] + " (" + mods[0] + ")</td>";
+        retString += "<td>" + scores[1] + " (" + mods[1] + ")</td>";
+        retString += "<td>" + scores[2] + " (" + mods[2] + ")</td>";
+        retString += "<td>" + scores[3] + " (" + mods[3] + ")</td>";
+        retString += "<td>" + scores[4] + " (" + mods[4] + ")</td>";
+        retString += "<td>" + scores[5] + " (" + mods[5] + ")</td>";
+        retString += "</tr></table><br>";
+        return retString;
+    }
 
     public int getHp() {
         return hp;
@@ -46,11 +167,11 @@ public class Player implements Fightable, LibraryMember {
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.name = TextFormat.pruneText(name);
     }
 
     public void setClasses(String classes) {
-        this.classes = classes;
+        this.classes = TextFormat.pruneText(classes);
     }
 
     public void setSaves(int[] saves) {
@@ -58,11 +179,11 @@ public class Player implements Fightable, LibraryMember {
     }
 
     public void setProfs(String profs) {
-        this.profs = profs;
+        this.profs = TextFormat.pruneText(profs);
     }
 
     public void setLang(String lang) {
-        this.lang = lang;
+        this.lang = TextFormat.pruneText(lang);
     }
 
     public void setTraitList(ArrayList<Trait> traitList) {
@@ -102,11 +223,11 @@ public class Player implements Fightable, LibraryMember {
     }
 
     public void setSpeed(String speed) {
-        this.speed = speed;
+        this.speed = TextFormat.pruneText(speed);
     }
 
     public void setNotes(String notes) {
-        this.notes = notes;
+        this.notes = TextFormat.pruneText(notes);
     }
 
     public void setInitiative(int initiative) {
@@ -114,7 +235,7 @@ public class Player implements Fightable, LibraryMember {
     }
 
     public String getClasses() {
-        return classes;
+        return TextFormat.pruneText(classes);
     }
 
     public int[] getSaves() {
@@ -122,11 +243,11 @@ public class Player implements Fightable, LibraryMember {
     }
 
     public String getProfs() {
-        return profs;
+        return TextFormat.pruneText(profs);
     }
 
     public String getLang() {
-        return lang;
+        return TextFormat.pruneText(lang);
     }
 
     public ArrayList<Trait> getTraitList() {
@@ -154,11 +275,11 @@ public class Player implements Fightable, LibraryMember {
     }
 
     public String getSpeed() {
-        return speed;
+        return TextFormat.pruneText(speed);
     }
 
     public String getNotes() {
-        return notes;
+        return TextFormat.pruneText(notes);
     }
 
     public int getLevel() {
@@ -166,27 +287,27 @@ public class Player implements Fightable, LibraryMember {
     }
 
     public String getBackground() {
-        return background;
+        return TextFormat.pruneText(background);
     }
 
     public String getRace() {
-        return race;
+        return TextFormat.pruneText(race);
     }
 
     public String getAlignment() {
-        return alignment;
+        return TextFormat.pruneText(alignment);
     }
 
     public void setRace(String race) {
-        this.race = race;
+        this.race = TextFormat.pruneText(race);
     }
 
     public void setBackground(String background) {
-        this.background = background;
+        this.background = TextFormat.pruneText(background);
     }
 
     public void setAlignment(String alignment) {
-        this.alignment = alignment;
+        this.alignment = TextFormat.pruneText(alignment);
     }
 
     public int getInitiative() {
@@ -204,7 +325,7 @@ public class Player implements Fightable, LibraryMember {
 
 
     public String toString() {
-        return this.name;
+        return TextFormat.pruneText(this.name);
     }
 
     protected String pruneText(String entryString) {
