@@ -353,6 +353,7 @@ public class Monster implements Comparable<Monster>, Fightable, LibraryMember {
         }
         JScrollPane textPaneScroll = new JScrollPane(textPane);
         panel.add(textPaneScroll);
+        textPane.setCaretPosition(0);
         return panel;
     }
 

@@ -6,6 +6,7 @@
  
 import javax.swing.*;
 import javax.swing.event.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
@@ -65,6 +66,7 @@ public class FrameTest2 {
         model.addRow(new Object[]{"entry a", "entry b"});
 
         table = new JTable(model);
+
         table.getTableHeader().setReorderingAllowed(false);
         JScrollPane tableScroll = new JScrollPane(table, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         tablePanel.add(tableScroll);
@@ -113,4 +115,22 @@ public class FrameTest2 {
         }
     }
 
+    public class StatusColumnCellRenderer extends DefaultTableCellRenderer {
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col) {
+
+            //Cells are by default rendered as a JLabel.
+            JLabel l = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
+
+            //Get the status for the current row.
+
+            l.setBackground(Color.GREEN);
+
+            //Return the JLabel which renders the cell.
+            return l;
+        }
+    }
 }
+
+

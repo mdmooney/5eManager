@@ -112,6 +112,7 @@ public class Spell extends Power implements LibraryMember {
         JScrollPane textPaneScroll = new JScrollPane(textPane);
         panel.add(textPaneScroll);
         panel.setPreferredSize(new Dimension(350, 120));
+        textPane.setCaretPosition(0);
         return panel;
     }
 

@@ -11,5 +11,7 @@ public interface Fightable extends LibraryMember {
 
     public abstract int getScore(int position);
 
+    public abstract int getAc();
+
     public abstract int getInitiative();
 }

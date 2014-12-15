@@ -169,6 +169,7 @@ public class Player implements Fightable, LibraryMember {
         JScrollPane textPaneScroll = new JScrollPane(textPane, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         JScrollPane spellPaneScroll = new JScrollPane(spellPane, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         tabbedPane.add(textPaneScroll, "Main");
+        textPane.setCaretPosition(0);
         if(spellPane.getText().length() != 0) { tabbedPane.add(spellPaneScroll, "Spellcasting"); }
         panel.add(tabbedPane);
         return panel;

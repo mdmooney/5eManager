@@ -13,15 +13,21 @@ public class Participant implements Comparable<Participant> {
     private int currentHp;
     private int maxHp;
     private int initiative;
+    private int currentRound;
+    private int number; //number of the participant in the initiative order to distinguish between things with the same name
     private Fightable fightable;
     private String name;
     private String notes;
+    private String hpString;
 
     public Participant(Fightable fightable) {
         this.fightable = fightable;
         this.currentHp = fightable.getHp();
         this.maxHp = fightable.getHp();
         this.name = fightable.getName();
+        this.hpString = currentHp + "/" + maxHp;
+        this.currentRound = 1;
+        this.number = 0;
     }
 
     public int compareTo(Participant p) {
@@ -50,6 +56,7 @@ public class Participant implements Comparable<Participant> {
         if (fightable.getClass() == Monster.class) {
             this.maxHp = ((Monster) fightable).getRandomHp();
             this.currentHp = this.maxHp;
+            updateHpString();
         }
     }
 
@@ -76,7 +83,30 @@ public class Participant implements Comparable<Participant> {
         this.currentHp = currentHp;
     }
 
+    public String getHpString() {
+        return hpString;
+    }
+
+    public void updateHpString() {
+        this.hpString = currentHp + "/" + maxHp;
+    }
+
+    public int getAc() {
+        return this.fightable.getAc();
+    }
+
     public java.lang.Class getFightableClass() {
         return this.fightable.getClass();
+    }
+
+    public int getCurrentRound() {return this.currentRound;}
+    public void setCurrentRound(int currentRound) {this.currentRound = currentRound;}
+
+    public int getNumber() {
+        return number;
+    }
+
+    public void setNumber(int number) {
+        this.number = number;
     }
 }

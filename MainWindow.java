@@ -13,6 +13,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import javax.swing.UIManager.*;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 
 /**
  * Created by Michael on 25/11/2014.
@@ -20,7 +22,9 @@ import javax.swing.UIManager.*;
 public class MainWindow {
     private JFrame frame;
     private ArrayList<Participant> participants = new ArrayList<Participant>();
-    private JList encounterMembers;
+    private JTable encounterMembers;
+    private DefaultTableModel model = new DefaultTableModel();
+    private TableRowSorter sorter = new TableRowSorter(model);
     private JSpinner initSpin = new JSpinner(new SpinnerNumberModel(0, 0, 99, 1));
     private JSpinner hpChangeSpin = new JSpinner(new SpinnerNumberModel(0, 0, 999, 1));
     private JPanel blockPanel;
@@ -28,6 +32,7 @@ public class MainWindow {
     private JLabel currentHpLabel = new JLabel(" / ");
     private HashMap<Participant, Integer> addedPlayers;
     private final Dimension LIST_DIMENSION = new Dimension(290, 400);
+    private final String[] COLUMN_NAMES = {"Name", "AC", "HP"};
 
     public static void main(String[] args) {
      MainWindow mw = new MainWindow();
@@ -78,8 +83,9 @@ public class MainWindow {
         randomHpButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (!encounterMembers.isSelectionEmpty()) {
-                    ((Participant) encounterMembers.getSelectedValue()).getRandomHp();
+                if (!encounterMembers.getSelectionModel().isSelectionEmpty()) {
+                    getSelectedParticipant().getRandomHp();
+                    encounterMembers.setValueAt(getSelectedParticipant().getHpString(), encounterMembers.getSelectedRow(), 2);
                     refreshHpLabel();
                 }
             }
@@ -88,8 +94,9 @@ public class MainWindow {
         hurtButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (!encounterMembers.isSelectionEmpty()) {
+                if (!encounterMembers.getSelectionModel().isSelectionEmpty()) {
                     modHp(- (Integer) hpChangeSpin.getValue());
+
                 }
             }
         });
@@ -98,11 +105,14 @@ public class MainWindow {
         healButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (!encounterMembers.isSelectionEmpty()) {
+                if (!encounterMembers.getSelectionModel().isSelectionEmpty()) {
                     modHp((Integer) hpChangeSpin.getValue());
                 }
             }
         });
+
+        JButton nextTurnButton = new JButton("Next Turn");
+        nextTurnButton.addActionListener(new NextTurnListener());
 
         GridBagConstraints c = new GridBagConstraints();
 
@@ -138,8 +148,9 @@ public class MainWindow {
             public void actionPerformed(ActionEvent e) {
                 for(Participant part : participants) {
                     part.getRandomHp();
-                    if (!encounterMembers.isSelectionEmpty()) refreshHpLabel();
+                    if (!encounterMembers.getSelectionModel().isSelectionEmpty()) refreshHpLabel();
                 }
+                updateAllHp();
             }
         });
 
@@ -148,6 +159,7 @@ public class MainWindow {
             @Override
             public void actionPerformed(ActionEvent e) {
                 participants.clear();
+                addedPlayers.clear();
                 updateParticipants();
                 blockPanel.removeAll();
                 blockPanel.add(blankTextArea);
@@ -171,8 +183,8 @@ public class MainWindow {
         rollInitButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (!encounterMembers.isSelectionEmpty()) {
-                    initSpin.setValue(((Participant) encounterMembers.getSelectedValue()).rollInitiative());
+                if (!encounterMembers.getSelectionModel().isSelectionEmpty()) {
+                    initSpin.setValue((getSelectedParticipant()).rollInitiative());
                 }
             }
         });
@@ -183,9 +195,9 @@ public class MainWindow {
         controlPanel.add(new JLabel("Initiative: "),c);
         initSpin.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
-                if (!encounterMembers.isSelectionEmpty()) {
-                    ((Participant) encounterMembers.getSelectedValue()).setInitiative((Integer) initSpin.getValue());
-                    refreshInitiative();
+                if (!encounterMembers.getSelectionModel().isSelectionEmpty()) {
+                    (getSelectedParticipant()).setInitiative((Integer) initSpin.getValue());
+                    //refreshInitiative();
                 }
             }
         });
@@ -214,15 +226,39 @@ public class MainWindow {
         controlPanel.add(hurtButton,c);
         c.gridx++;
         controlPanel.add(healButton,c);
+        c.gridy++;
+        c.gridx=0;
+        c.gridwidth=3;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        controlPanel.add(nextTurnButton,c);
 
-        encounterMembers = new JList();
+        for (String str : COLUMN_NAMES) {
+            model.addColumn(str);
+        }
+
+        encounterMembers = new JTable(model) {
+            private static final long serialVersionUID = 1L;
+
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            };
+        };
+        sorter.setComparator(0, new TurnCompare());
+        sorter.toggleSortOrder(0);
+        //sorter.setSortsOnUpdates(true);
+        sorter.setSortable(1, false);
+        sorter.setSortable(2, false);
+        sorter.setSortable(0, false);
+        encounterMembers.setRowSorter(sorter);
+        encounterMembers.getTableHeader().setReorderingAllowed(false);
         encounterMembers.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        encounterMembers.addListSelectionListener(new EncSelectionListener());
+        encounterMembers.getSelectionModel().addListSelectionListener(new EncSelectionListener());
         JScrollPane encScroller = new JScrollPane(encounterMembers, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         JPanel encPanel = new JPanel(new GridBagLayout());
 
         c.gridx=0;
         c.gridy=0;
+        c.gridwidth=1;
         c.weightx=1;
         c.weighty=1;
         c.fill=GridBagConstraints.BOTH;
@@ -260,43 +296,91 @@ public class MainWindow {
 
     private void updateParticipants() {
         Collections.sort(participants);
+
         //rename participants appropriately
-        for (Participant p : participants) {
-            p.setName(p.getBaseName());
-        }
-        int sameCount = 1;
-        for (int i = 0; i < participants.size(); i++) {
-            if (!participants.get(i).getFightableClass().equals(Player.class)) {
-                if (i > 0 && participants.get(i).getBaseName().equals(participants.get(i - 1).getBaseName())) {
-                    sameCount++;
-                } else sameCount = 1;
-                participants.get(i).setName(participants.get(i).getBaseName() + " #" + sameCount);
+        ArrayList<Participant> participantsByNum = new ArrayList<Participant>();
+        participantsByNum.addAll(participants);
+        participantsByNum.sort(new ParticipantNumberCompare());
+
+        for (int i = 0; i < participantsByNum.size(); i++) {
+            Participant part = participantsByNum.get(i);
+            if (part.getNumber() == 0) {
+                int highestNum = 0;
+                for (int j = 0; j < participantsByNum.size(); j++) {
+                    Participant compare = participantsByNum.get(j);
+                    if (j != i && part.getBaseName().equals(compare.getBaseName()) && compare.getNumber() > highestNum) {
+                        highestNum = compare.getNumber();
+                    }
+                }
+                part.setNumber(highestNum + 1);
+                part.setName(part.getBaseName() + " #" + part.getNumber());
             }
         }
+
         //end renaming
-        Collections.sort(participants, new InitiativeCompare());
-        encounterMembers.setListData(participants.toArray());
+        Collections.sort(participants, new TurnCompare());
+        participantsToTable();
+    }
+
+    private void participantsToTable() {
+        for (int i = model.getRowCount() - 1; i >= 0; i--) {
+            model.removeRow(i);
+        }
+
+        for (Participant part : participants) {
+            model.addRow(new Object[]{part, part.getAc(), part.getHpString()});
+        }
         encounterMembers.revalidate();
     }
 
+    private Participant getSelectedParticipant() {
+        if (encounterMembers.getSelectedRow() != -1) {
+            return (Participant) encounterMembers.getValueAt(encounterMembers.getSelectedRow(), 0);
+        }
+        else return null;
+    }
+
+
     private void refreshInitiative() {
-        Object selection = encounterMembers.getSelectedValue();
-        Collections.sort(participants, new InitiativeCompare());
-        encounterMembers.setListData(participants.toArray());
-        encounterMembers.revalidate();
-        encounterMembers.setSelectedValue(selection, true);
+         //sorter.sort();
+         participants.sort(new InitiativeCompare());
+         participantsToTable();
     }
 
     private void refreshHpLabel() {
-        Participant selected = (Participant) encounterMembers.getSelectedValue();
+        Participant selected = getSelectedParticipant();
         currentHpLabel.setText(selected.getCurrentHp() + " / " + selected.getMaxHp());
+    }
 
+    private void updateAllHp() {
+        for (int i = 0; i < encounterMembers.getRowCount(); i++) {
+            Participant part = (Participant)encounterMembers.getValueAt(i,0);
+            part.updateHpString();
+            encounterMembers.setValueAt(part.getHpString(), i, 2);
+        }
+    }
+
+    private void refreshBlockPanel() {
+        try {
+            Participant selected = getSelectedParticipant();
+            blockPanel.removeAll();
+            blockPanel.add(selected.getBlock());
+            blockPanel.revalidate();
+            initSpin.setValue(selected.getInitiative());
+            refreshHpLabel();
+        }
+        catch(NullPointerException npex) {
+            blockPanel.removeAll();
+        }
     }
 
     private void modHp(int mod) {
-        Participant selected = (Participant) encounterMembers.getSelectedValue();
+        Participant selected = getSelectedParticipant();
         selected.setCurrentHp(selected.getCurrentHp() + mod);
+        selected.updateHpString();
+        encounterMembers.setValueAt(selected.getHpString(), encounterMembers.getSelectedRow(), 2);
         refreshHpLabel();
+        encounterMembers.revalidate();
     }
 
     public class LibButtonListener implements ActionListener {
@@ -304,7 +388,14 @@ public class MainWindow {
             PickMonster pm = new PickMonster();
             pm.open(frame);
             if (pm.getParticipants() != null) {
-                participants.addAll(pm.getParticipants());
+                ArrayList<Participant> newParts = new ArrayList<Participant>();
+                newParts.addAll(pm.getParticipants());
+                for (Participant part: newParts) {
+                    if(!participants.isEmpty()) {
+                        part.setCurrentRound(participants.get(0).getCurrentRound());
+                    }
+                }
+                participants.addAll(newParts);
                 updateParticipants();
             }
         }
@@ -330,9 +421,16 @@ public class MainWindow {
             PickPlayer pp = new PickPlayer(addedPlayers);
             pp.open(frame);
             if (pp.getParticipants() != null) {
-                participants.addAll(pp.getParticipants());
+                ArrayList<Participant> newParts = new ArrayList<Participant>();
+                newParts.addAll(pp.getParticipants());
+                for (Participant part: newParts) {
+                    if(!participants.isEmpty()) {
+                        part.setCurrentRound(participants.get(0).getCurrentRound());
+                    }
+                }
+                participants.addAll(newParts);
+                updateParticipants();
             }
-            updateParticipants();
         }
     }
 
@@ -342,20 +440,40 @@ public class MainWindow {
         }
     }
 
+    public class TurnCompare implements Comparator<Participant> {
+        public int compare(Participant pOne, Participant pTwo) {
+            if (pOne.getCurrentRound() >pTwo.getCurrentRound()) return 1;
+            else if (pTwo.getCurrentRound() > pOne.getCurrentRound()) return -1;
+            else return new InitiativeCompare().compare(pOne,pTwo);
+        }
+    }
+
+    public class ParticipantNumberCompare implements Comparator<Participant> {
+        public int compare(Participant pOne, Participant pTwo) {
+            if (pOne.getBaseName().compareTo(pTwo.getBaseName()) == 0) {
+                return Integer.compare(pOne.getNumber(), pTwo.getNumber());
+            }
+            else return pOne.getBaseName().compareTo(pTwo.getBaseName());
+        }
+    }
+
     class EncSelectionListener implements ListSelectionListener {
         public void valueChanged(ListSelectionEvent lse) {
-            try {
-                Participant selected = (Participant) encounterMembers.getSelectedValue();
-                blockPanel.removeAll();
-                blockPanel.add(selected.getBlock());
-                blockPanel.revalidate();
-                initSpin.setValue(selected.getInitiative());
-                refreshHpLabel();
-            }
-            catch(NullPointerException npex) {
-                blockPanel.removeAll();
-            }
+            refreshBlockPanel();
+        }
+    }
 
+    class NextTurnListener implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            if (model.getRowCount() > 0) {
+                Participant temp = participants.get(0);
+                temp.setCurrentRound(temp.getCurrentRound()+1);
+                participants.remove(temp);
+                participants.sort(new TurnCompare());
+                participants.add(temp);
+                //sorter.sort();
+                participantsToTable();
+            }
         }
     }
 }
