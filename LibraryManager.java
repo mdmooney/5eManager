@@ -75,10 +75,9 @@ public class LibraryManager {
         if (!f.exists()) {
             try {
                 XMLOutputFactory xof = XMLOutputFactory.newFactory();
-                XMLStreamWriter xsw = xof.createXMLStreamWriter(new FileWriter(xmlFile));
+                XMLStreamWriter xsw = xof.createXMLStreamWriter(new FileOutputStream(xmlFile), "UTF-8");
                 com.sun.xml.internal.txw2.output.IndentingXMLStreamWriter sw = new IndentingXMLStreamWriter(xsw);
                 sw.setIndentStep("    ");
-
                 sw.writeStartDocument("UTF-8", "1.0");
                 sw.writeStartElement(libName);
                 sw.writeEndDocument();
@@ -88,6 +87,12 @@ public class LibraryManager {
             }
             catch (Exception ex) {
                 ex.printStackTrace();
+                StringBuilder sb = new StringBuilder(ex.toString());
+                for (StackTraceElement ste : ex.getStackTrace()) {
+                    sb.append("\n\tat ");
+                    sb.append(ste);
+                }
+                JOptionPane.showMessageDialog(new JFrame(), "An error occurred with XML checking/creation! Stack trace:\n" + sb.toString());
             }
         }
     }
