@@ -1,5 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 /**
  * Created by Michael on 09/12/2014.
@@ -7,7 +9,7 @@ import java.awt.*;
 public class SpellEditWindow extends PowerEditWindow {
     private Spell spell;
     private JSpinner levelSpin = new JSpinner(new SpinnerNumberModel(0, 0, 9, 1));
-    private JTextField schoolField = new JTextField(10);
+    private JCheckBox ritualCheck = new JCheckBox();
     private JTextField castTimeField = new JTextField(10);
     private JTextField rangeField = new JTextField(10);
     private JTextField componentsField = new JTextField(13);
@@ -28,7 +30,7 @@ public class SpellEditWindow extends PowerEditWindow {
         this.spell.setName(spell.getName());
         this.spell.setDescription(spell.getDescription());
         this.spell.setLevel(spell.getLevel());
-
+        this.spell.setRitual(spell.isRitual());
         this.spell.setCastTime(spell.getCastTime());
         this.spell.setComponents(spell.getComponents());
         this.spell.setDuration(spell.getDuration());
@@ -48,6 +50,11 @@ public class SpellEditWindow extends PowerEditWindow {
             saveButton.setText("Save Changes");
             dialog.setTitle("Edit Spell");
         }
+        dialog.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                nullPower(); //make the spell null on exiting so it isn't added to the library if it's undesired
+            }
+        });
     }
 
     protected JPanel getInsertPanel() {
@@ -67,6 +74,11 @@ public class SpellEditWindow extends PowerEditWindow {
         cb.gridx++;
         //spellPanel.add(schoolField, cb);
         spellPanel.add(schoolBox, cb);
+        cb.gridx--;
+        cb.gridy++;
+        spellPanel.add(new JLabel("Ritual? "), cb);
+        cb.gridx++;
+        spellPanel.add(ritualCheck, cb);
         cb.gridx--;
         cb.gridy++;
         cb.weightx=0;
@@ -96,7 +108,7 @@ public class SpellEditWindow extends PowerEditWindow {
     void saveData() {
         if (!name.getText().equals("")) {
             this.spell = new Spell(name.getText(), description.getText(), (String) schoolBox.getSelectedItem(), castTimeField.getText(), rangeField.getText(),
-                   componentsField.getText(), durationField.getText(), (Integer) levelSpin.getValue());
+                   componentsField.getText(), durationField.getText(), (Integer) levelSpin.getValue(), ritualCheck.isSelected());
             dialog.dispose();
         }
         else JOptionPane.showMessageDialog(dialog, "At a minimum, you must enter a name to save a spell.");
@@ -111,7 +123,7 @@ public class SpellEditWindow extends PowerEditWindow {
         levelSpin.setValue(spell.getLevel());
         name.setText(spell.getName());
         description.setText(spell.getDescription());
-        //schoolField.setText(spell.getSchool());
+        ritualCheck.setSelected(spell.isRitual());
         schoolBox.setSelectedItem(spell.getSchool());
         castTimeField.setText(spell.getCastTime());
         rangeField.setText(spell.getRange());

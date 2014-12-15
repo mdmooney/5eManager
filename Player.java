@@ -136,7 +136,7 @@ public class Player implements Fightable, LibraryMember {
                     }
                     //add levelled spells
                     for (int i = 0; i < 9; i++) {
-                        if (!spellRef.getSpells()[i+1].isEmpty()) {
+                        if (!spellRef.getSpells()[i+1].isEmpty() || spellRef.getSlots()[i] > 0) {
                             String[] splitSpells = spellRef.getSpells()[i+1].split("\n");
                             String spellString = "";
                             for (int j = 0; j < splitSpells.length; j++) {

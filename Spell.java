@@ -12,7 +12,7 @@ import java.awt.*;
 @XmlRootElement(name="spellblock")
 @XmlSeeAlso(Power.class)
 @XmlAccessorType(XmlAccessType.FIELD)
-//@XmlType(propOrder = {"name", "level", "school", "castTime", "range", "components", "duration", "description"})
+//@XmlType(propOrder = {"name", "level", "school", "castTime", "range", "components", "duration", "description", "ritual"})
 
 public class Spell extends Power implements LibraryMember {
     private String school;
@@ -21,13 +21,14 @@ public class Spell extends Power implements LibraryMember {
     private String components;
     private String duration;
     private int level;
+    private boolean ritual;
 
     public Spell() {}
 
     public Spell(String name, String desc) {
         super(name, desc);
     }
-    public Spell(String name, String desc, String school, String castTime, String range, String components, String duration, int level) {
+    public Spell(String name, String desc, String school, String castTime, String range, String components, String duration, int level, boolean ritual) {
         super(name, desc);
         this.school = pruneText(school);
         this.castTime = pruneText(castTime);
@@ -35,6 +36,7 @@ public class Spell extends Power implements LibraryMember {
         this.components = pruneText(components);
         this.duration = pruneText(duration);
         this.level = level;
+        this.ritual = ritual;
     }
 
     public String getSchool() {
@@ -83,6 +85,14 @@ public class Spell extends Power implements LibraryMember {
 
     public void setLevel(int level) {
         this.level = level;
+    }
+
+    public boolean isRitual() {
+        return ritual;
+    }
+
+    public void setRitual(boolean ritual) {
+        this.ritual = ritual;
     }
 
     public JPanel getBlockPanel() {

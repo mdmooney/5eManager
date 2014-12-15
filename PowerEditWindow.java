@@ -67,6 +67,7 @@ public abstract class PowerEditWindow {
         cancelButton = new JButton("Cancel");
         cancelButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                nullPower();
                 dialog.dispose();
             }
         });

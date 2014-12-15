@@ -177,6 +177,7 @@ public class PickSpell {
             spellInfoPanel.removeAll();
             spellInfoPanel.add(selectSpell.getBlockPanel());
             spellInfoPanel.revalidate();
+            spellInfoPanel.repaint();
         }
         catch(NullPointerException npex) {
             spellInfoPanel.removeAll();
@@ -188,6 +189,8 @@ public class PickSpell {
         this.refName = name;
         open(parent);
     }
+
+
 
     class NewSpellListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
