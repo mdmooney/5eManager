@@ -1,10 +1,6 @@
-import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader;
-import sun.rmi.log.LogInputStream;
-
 import javax.swing.*;
 import javax.swing.event.*;
 import java.awt.*;
-import java.awt.List;
 import java.awt.event.*;
 import java.util.*;
 import javax.swing.UIManager.*;
@@ -427,7 +423,8 @@ public class MainWindow {
 
     private void refreshInitiative() {
          //sorter.sort();
-         participants.sort(new InitiativeCompare());
+         //participants.sort(new InitiativeCompare());
+        participants.sort(new TurnCompare());
          participantsToTable();
     }
 
