@@ -278,12 +278,12 @@ public class Monster implements Comparable<Monster>, Fightable, LibraryMember {
             for (Trait trait : traitList) {
 
                 if (trait.getName().equalsIgnoreCase("spellcasting")) {
-                    kit.insertHTML(doc, doc.getLength(), "<b><i>" + trait.getName() + ". </b></i>" + getFormattedSpells(trait).replace("\n", "<br>"), 0, 0, HTML.Tag.B);
+                    kit.insertHTML(doc, doc.getLength(), "<b><i>" + trait.getName() + ". </b></i>" + getFormattedSpells(trait).replace("\n", "<br>") + "<br>", 0, 0, HTML.Tag.B);
                     castsSpells = true;
                 }
 
                 else if (trait.getName().toLowerCase().startsWith("innate spellcasting")) {
-                    kit.insertHTML(doc, doc.getLength(), "<b><i>" + trait.getName() + ". </b></i>" + getFormattedInnateSpells(trait).replace("\n", "<br>"), 0, 0, HTML.Tag.B);
+                    kit.insertHTML(doc, doc.getLength(), "<b><i>" + trait.getName() + ". </b></i>" + getFormattedInnateSpells(trait).replace("\n", "<br>") + "<br>", 0, 0, HTML.Tag.B);
                     castsSpells = true;
                 }
 
@@ -444,7 +444,7 @@ public class Monster implements Comparable<Monster>, Fightable, LibraryMember {
     }
 
     private void addBasicLine(HTMLEditorKit kit, HTMLDocument doc, String name, String variable) {
-        if (variable != null) {
+        if (variable != null && !variable.equals("")) {
             try {
                 kit.insertHTML(doc, doc.getLength(), "<b>" + name + ": </b>" + variable + "<br>", 0, 0, HTML.Tag.B);
             } catch (Exception ex) {

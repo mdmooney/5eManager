@@ -2,17 +2,13 @@ import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader;
 import sun.rmi.log.LogInputStream;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
+import javax.swing.event.*;
 import java.awt.*;
+import java.awt.List;
 import java.awt.event.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
+import java.util.*;
 import javax.swing.UIManager.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 
@@ -23,16 +19,24 @@ public class MainWindow {
     private JFrame frame;
     private ArrayList<Participant> participants = new ArrayList<Participant>();
     private JTable encounterMembers;
-    private DefaultTableModel model = new DefaultTableModel();
+    private DefaultTableModel model = new DefaultTableModel() {
+        @Override
+        public Class<?> getColumnClass(int columnIndex) {
+            return String.class;
+        }
+    };
     private TableRowSorter sorter = new TableRowSorter(model);
     private JSpinner initSpin = new JSpinner(new SpinnerNumberModel(0, 0, 99, 1));
     private JSpinner hpChangeSpin = new JSpinner(new SpinnerNumberModel(0, 0, 999, 1));
     private JPanel blockPanel;
     private JTextArea blankTextArea = new JTextArea(20, 20);
+    private JTextArea notesArea = new JTextArea(10,10);
+    private JScrollPane notesScroller = new JScrollPane(notesArea, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
     private JLabel currentHpLabel = new JLabel(" / ");
     private HashMap<Participant, Integer> addedPlayers;
+    private boolean noInitRefresh;
     private final Dimension LIST_DIMENSION = new Dimension(290, 400);
-    private final String[] COLUMN_NAMES = {"Name", "AC", "HP"};
+    private final String[] COLUMN_NAMES = {"Name", "AC", "HP", "R"};
 
     public static void main(String[] args) {
      MainWindow mw = new MainWindow();
@@ -71,6 +75,7 @@ public class MainWindow {
         JPanel controlPanel = new JPanel(new GridBagLayout());
         blockPanel = new JPanel();
         blockPanel.setLayout(new BoxLayout(blockPanel, BoxLayout.X_AXIS));
+
 
         //add a blank text area with a scrollbar to the block panel on startup. This is purely aesthetic.
         blankTextArea.setEnabled(false);
@@ -111,6 +116,7 @@ public class MainWindow {
             }
         });
 
+
         JButton nextTurnButton = new JButton("Next Turn");
         nextTurnButton.addActionListener(new NextTurnListener());
 
@@ -121,6 +127,13 @@ public class MainWindow {
         JMenu encMenu = new JMenu("Encounter");
         JMenu libMenu = new JMenu("Libraries");
 
+        JMenuItem exitMenuItem = new JMenuItem("Exit");
+        exitMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                frame.dispose();
+            }
+        });
         JMenuItem libMenuItem = new JMenuItem("Monster Library");
         libMenuItem.addActionListener(new LibButtonListener());
 
@@ -154,6 +167,26 @@ public class MainWindow {
             }
         });
 
+        JMenuItem endEncItem = new JMenuItem("End encounter");
+        endEncItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                ArrayList<Participant> newParts = new ArrayList<Participant>();
+                for (Participant part : participants) {
+                    if (part.getFightableClass().equals(Player.class)) {
+                        part.setCurrentRound(1);
+                        part.setInitiative(0);
+                        newParts.add(part);
+                    }
+                }
+                participants.clear();
+                participants.addAll(newParts);
+                updateParticipants();
+                blockPanel.removeAll();
+                blockPanel.add(blankTextArea);
+            }
+        });
+
         JMenuItem clearEncItem = new JMenuItem("Clear encounter");
         clearEncItem.addActionListener(new ActionListener() {
             @Override
@@ -166,8 +199,11 @@ public class MainWindow {
             }
         });
 
+        fileMenu.add(exitMenuItem);
+
         encMenu.add(rollInitItem);
         encMenu.add(rollHpItem);
+        encMenu.add(endEncItem);
         encMenu.add(clearEncItem);
 
         libMenu.add(libMenuItem);
@@ -195,9 +231,16 @@ public class MainWindow {
         controlPanel.add(new JLabel("Initiative: "),c);
         initSpin.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
-                if (!encounterMembers.getSelectionModel().isSelectionEmpty()) {
+                if (!encounterMembers.getSelectionModel().isSelectionEmpty() && !noInitRefresh) {
+                    Participant part = getSelectedParticipant();
                     (getSelectedParticipant()).setInitiative((Integer) initSpin.getValue());
-                    //refreshInitiative();
+                    refreshInitiative();
+                    for (int i = 0; i < encounterMembers.getRowCount(); i++) {
+                        if (encounterMembers.getValueAt(i, 0) == part) {
+                            encounterMembers.setRowSelectionInterval(i,i);
+                            break;
+                        }
+                    }
                 }
             }
         });
@@ -231,6 +274,12 @@ public class MainWindow {
         c.gridwidth=3;
         c.fill = GridBagConstraints.HORIZONTAL;
         controlPanel.add(nextTurnButton,c);
+        c.gridy++;
+        c.gridwidth=1;
+        controlPanel.add(new JLabel("Notes: "),c);
+        c.gridy++;
+        c.gridwidth=3;
+        controlPanel.add(notesScroller,c);
 
         for (String str : COLUMN_NAMES) {
             model.addColumn(str);
@@ -253,6 +302,8 @@ public class MainWindow {
         encounterMembers.getTableHeader().setReorderingAllowed(false);
         encounterMembers.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         encounterMembers.getSelectionModel().addListSelectionListener(new EncSelectionListener());
+        encounterMembers.getColumnModel().getColumn(0).setPreferredWidth(250);
+        encounterMembers.setDefaultRenderer(String.class, new BoardTableCellRenderer());
         JScrollPane encScroller = new JScrollPane(encounterMembers, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         JPanel encPanel = new JPanel(new GridBagLayout());
 
@@ -285,6 +336,30 @@ public class MainWindow {
         c.gridwidth=GridBagConstraints.REMAINDER;
         centPanel.add(blockPanel,c);
 
+        notesArea.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                if (getSelectedParticipant() != null) {
+                    getSelectedParticipant().setNotes(notesArea.getText());
+                }
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                if (getSelectedParticipant() != null) {
+                    getSelectedParticipant().setNotes(notesArea.getText());
+                }
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                if (getSelectedParticipant() != null) {
+                    getSelectedParticipant().setNotes(notesArea.getText());
+                }
+            }
+        });
+        notesArea.setEnabled(false);
+
         frame.add(BorderLayout.CENTER, centPanel);
         frame.setJMenuBar(menuBar);
 
@@ -304,22 +379,31 @@ public class MainWindow {
 
         for (int i = 0; i < participantsByNum.size(); i++) {
             Participant part = participantsByNum.get(i);
-            if (part.getNumber() == 0) {
-                int highestNum = 0;
-                for (int j = 0; j < participantsByNum.size(); j++) {
-                    Participant compare = participantsByNum.get(j);
-                    if (j != i && part.getBaseName().equals(compare.getBaseName()) && compare.getNumber() > highestNum) {
-                        highestNum = compare.getNumber();
+            if (!part.getFightableClass().equals(Player.class)) {
+                if (part.getNumber() == 0) {
+                    int highestNum = 0;
+                    for (int j = 0; j < participantsByNum.size(); j++) {
+                        Participant compare = participantsByNum.get(j);
+                        if (j != i && part.getBaseName().equals(compare.getBaseName()) && compare.getNumber() > highestNum) {
+                            highestNum = compare.getNumber();
+                        }
                     }
+                    part.setNumber(highestNum + 1);
+                    part.setName(part.getBaseName() + " #" + part.getNumber());
                 }
-                part.setNumber(highestNum + 1);
-                part.setName(part.getBaseName() + " #" + part.getNumber());
             }
         }
 
         //end renaming
         Collections.sort(participants, new TurnCompare());
         participantsToTable();
+
+        if (participants.size() > 0) {
+            notesArea.setEnabled(true);
+        }
+        else {
+            notesArea.setEnabled(false);
+        }
     }
 
     private void participantsToTable() {
@@ -328,7 +412,7 @@ public class MainWindow {
         }
 
         for (Participant part : participants) {
-            model.addRow(new Object[]{part, part.getAc(), part.getHpString()});
+            model.addRow(new Object[]{part, part.getAc(), part.getHpString(), part.getCurrentRound()});
         }
         encounterMembers.revalidate();
     }
@@ -367,6 +451,8 @@ public class MainWindow {
             blockPanel.add(selected.getBlock());
             blockPanel.revalidate();
             initSpin.setValue(selected.getInitiative());
+            notesArea.setEnabled(true);
+            notesArea.setText(selected.getNotes());
             refreshHpLabel();
         }
         catch(NullPointerException npex) {
@@ -459,7 +545,9 @@ public class MainWindow {
 
     class EncSelectionListener implements ListSelectionListener {
         public void valueChanged(ListSelectionEvent lse) {
+            noInitRefresh = true;
             refreshBlockPanel();
+            noInitRefresh = false;
         }
     }
 
@@ -474,6 +562,50 @@ public class MainWindow {
                 //sorter.sort();
                 participantsToTable();
             }
+        }
+    }
+
+    class BoardTableCellRenderer extends DefaultTableCellRenderer {
+
+        private static final long serialVersionUID = 1L;
+
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                                                       boolean isSelected, boolean hasFocus, int row, int col) {
+
+            Component c = super.getTableCellRendererComponent(table, value,
+                    isSelected, hasFocus, row, col);
+            Object valueAt = table.getModel().getValueAt(row, col);
+            Participant part = (Participant) table.getModel().getValueAt(row, 0);
+            final Color ALT_BG = new Color(230, 230, 230);
+            final Color SELECT_BG = new Color(57, 105, 138);
+
+            String s = "";
+
+            if (part != null && valueAt instanceof Participant) {
+                s = valueAt.toString();
+            }
+
+            if (row == table.getSelectedRow()) {
+                c.setForeground(Color.WHITE);
+                c.setBackground(SELECT_BG);
+            }
+
+            else if (part.getCurrentHp() <= 0) {
+                c.setForeground(Color.WHITE);
+                c.setBackground(Color.BLACK);
+            }
+
+            else if (row % 2 == 0) {
+                c.setForeground(Color.BLACK);
+                c.setBackground(ALT_BG);
+            }
+
+            else {
+                c.setForeground(Color.black);
+                c.setBackground(Color.WHITE);
+            }
+
+            return c;
         }
     }
 }

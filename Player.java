@@ -41,11 +41,14 @@ public class Player implements Fightable, LibraryMember {
         JTabbedPane tabbedPane = new JTabbedPane();
         JTextPane spellPane = new JTextPane();
         JTextPane textPane = new JTextPane();
+        JTextPane notesPane = new JTextPane();
         textPane.setEditable(false);
         spellPane.setEditable(false);
+        notesPane.setEditable(false);
         HTMLEditorKit kit = new HTMLEditorKit();
         HTMLDocument doc = new HTMLDocument();
         HTMLDocument spellDoc = new HTMLDocument();
+        HTMLDocument notesDoc = new HTMLDocument();
         textPane.setEditorKit(kit);
         textPane.setDocument(doc);
 
@@ -166,11 +169,28 @@ public class Player implements Fightable, LibraryMember {
                 }
             });
         }
+
+        if (!notes.equals("")) {
+            try {
+                notesPane.setEditorKit(kit);
+                notesPane.setDocument(notesDoc);
+                kit.insertHTML(notesDoc, 0, "<b>" + name.toUpperCase() + "</b><br>", 0, 0, HTML.Tag.B);
+                kit.insertHTML(notesDoc, notesDoc.getLength(), "<i>" + classes + "</i><br>", 0, 0, HTML.Tag.I);
+                kit.insertHTML(notesDoc, notesDoc.getLength(), "<hr>", 0, 0, HTML.Tag.HR);
+                kit.insertHTML(notesDoc, notesDoc.getLength(), TextFormat.pruneText(notes).replaceAll("\n", "<br>"), 0, 0, null);
+            }
+            catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+
         JScrollPane textPaneScroll = new JScrollPane(textPane, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         JScrollPane spellPaneScroll = new JScrollPane(spellPane, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        JScrollPane notesPaneScroll = new JScrollPane(notesPane, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         tabbedPane.add(textPaneScroll, "Main");
         textPane.setCaretPosition(0);
         if(spellPane.getText().length() != 0) { tabbedPane.add(spellPaneScroll, "Spellcasting"); }
+        if(notesPane.getText().length() != 0) { tabbedPane.add(notesPaneScroll, "Notes"); }
         panel.add(tabbedPane);
         return panel;
     }

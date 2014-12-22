@@ -109,4 +109,10 @@ public class Participant implements Comparable<Participant> {
     public void setNumber(int number) {
         this.number = number;
     }
+
+    public String getNotes() {return this.notes;}
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
 }
