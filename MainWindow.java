@@ -39,7 +39,13 @@ public class MainWindow {
      mw.go();
     }
 
+    /**
+     * Provides the setup for the main window, which displays and manages the encounter
+     * and also connects to other windows, such as the libraries and the generators.
+     * Called when the main method runs.
+     */
     public void go() {
+        //set up Java to use the Nimbus Look and Feel if it is available.
         try {
             for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
@@ -47,24 +53,25 @@ public class MainWindow {
                     break;
                 }
             }
-        } catch (ClassNotFoundException e) {
+        } catch (ClassNotFoundException e) { //thrown if Nimbus look and feel is not available.
             System.err.println("Couldn't find class for Nimbus look and feel.");
             System.err.println("Did you include the L&F library in the class path?");
             System.err.println("Using the default look and feel.");
         }
 
-        catch (UnsupportedLookAndFeelException e) {
+        catch (UnsupportedLookAndFeelException e) { //thrown if the platform can't use the look and feel
             System.err.println("Can't use the specified look and feel ('Nimbus') on this platform.");
             System.err.println("Using the default look and feel.");
         }
 
-        catch (Exception e) {
+        catch (Exception e) { //generic exception for all other cases
             System.err.println("Couldn't get specified look and feel ('Nimbus'), for some reason.");
             System.err.println("Using the default look and feel.");
             e.printStackTrace();
         }
 
-        addedPlayers = new HashMap<Participant, Integer>();
+        addedPlayers = new HashMap<Participant, Integer>(); //HashMap for controlling players (as players must be kept consistent)
+        //create frame, panels
         frame = new JFrame("5e Manager");
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         JPanel centPanel = new JPanel(new GridBagLayout());
@@ -113,16 +120,20 @@ public class MainWindow {
         });
 
 
+        //create button to advance the encounter to the next Participant in the initiative order
         JButton nextTurnButton = new JButton("Next Turn");
         nextTurnButton.addActionListener(new NextTurnListener());
 
         GridBagConstraints c = new GridBagConstraints();
 
+        //set up menu bar and menu headers
         JMenuBar menuBar = new JMenuBar();
         JMenu fileMenu = new JMenu("File");
         JMenu encMenu = new JMenu("Encounter");
         JMenu libMenu = new JMenu("Libraries");
+        JMenu generatorMenu = new JMenu("Generators");
 
+        //create File menu options
         JMenuItem exitMenuItem = new JMenuItem("Exit");
         exitMenuItem.addActionListener(new ActionListener() {
             @Override
@@ -133,13 +144,15 @@ public class MainWindow {
         JMenuItem libMenuItem = new JMenuItem("Monster Library");
         libMenuItem.addActionListener(new LibButtonListener());
 
+        //create Libraries menu options
         JMenuItem pcLibMenuItem = new JMenuItem("Player Library");
         pcLibMenuItem.addActionListener(new PcLibButtonListener());
 
         JMenuItem spellLibMenuItem = new JMenuItem("Spell Library");
         spellLibMenuItem.addActionListener(new SpellLibButtonListener());
 
-        JMenuItem rollInitItem = new JMenuItem("Roll initiative for all");
+        //create Encounter menu options
+        JMenuItem rollInitItem = new JMenuItem("Roll initiative for all"); //rolls initiative for all Participants
         rollInitItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -150,8 +163,20 @@ public class MainWindow {
             }
         });
 
+        JMenuItem rollInitMonItem = new JMenuItem("Roll initiative for monsters"); //rolls intitiative only for the Monsters
+        rollInitMonItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                for (Participant part : participants) {
+                    if (part.getFightableClass().equals(Monster.class)) {
+                        part.setInitiative(part.rollInitiative());
+                    }
+                }
+                refreshInitiative();
+            }
+        });
 
-        JMenuItem rollHpItem = new JMenuItem("Roll HP for all");
+
+        JMenuItem rollHpItem = new JMenuItem("Roll HP for all"); //rolls HP for all (though this does not apply for Players)
         rollHpItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -163,7 +188,7 @@ public class MainWindow {
             }
         });
 
-        JMenuItem endEncItem = new JMenuItem("End encounter");
+        JMenuItem endEncItem = new JMenuItem("End encounter"); //end encounter by setting player initiatives to 0 and remove monsters
         endEncItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -183,7 +208,7 @@ public class MainWindow {
             }
         });
 
-        JMenuItem clearEncItem = new JMenuItem("Clear encounter");
+        JMenuItem clearEncItem = new JMenuItem("Clear encounter"); //remove all Participants from encounter
         clearEncItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -195,22 +220,32 @@ public class MainWindow {
             }
         });
 
+        //add items to the File menu
         fileMenu.add(exitMenuItem);
 
+        //add items to the Encounter menu
         encMenu.add(rollInitItem);
+        encMenu.add(rollInitMonItem);
         encMenu.add(rollHpItem);
+        encMenu.add(new JSeparator(SwingConstants.HORIZONTAL));
         encMenu.add(endEncItem);
         encMenu.add(clearEncItem);
 
+        //add items to the Libraries menu
         libMenu.add(libMenuItem);
         libMenu.add(pcLibMenuItem);
         libMenu.add(spellLibMenuItem);
 
+        //add items to the Generator menu
+         // (nothing here yet)
+
+        //add menus to the menu bar
         menuBar.add(fileMenu);
         menuBar.add(encMenu);
         menuBar.add(libMenu);
+        menuBar.add(generatorMenu);
 
-
+        //create initiative button to roll initiative for specific Participants
         JButton rollInitButton = new JButton("Roll");
         rollInitButton.addActionListener(new ActionListener() {
             @Override
@@ -221,7 +256,7 @@ public class MainWindow {
             }
         });
 
-
+        //create the control panel
         c.gridy=0;
         c.gridx=0;
         controlPanel.add(new JLabel("Initiative: "),c);
@@ -277,29 +312,33 @@ public class MainWindow {
         c.gridwidth=3;
         controlPanel.add(notesScroller,c);
 
+        //set up participant table and its model & sorting model
         for (String str : COLUMN_NAMES) {
             model.addColumn(str);
         }
 
-        encounterMembers = new JTable(model) {
+        encounterMembers = new JTable(model) { //create the table
             private static final long serialVersionUID = 1L;
 
             public boolean isCellEditable(int row, int column) {
                 return false;
-            };
+            }; //prevent the user from manually editing cell contents.
         };
         sorter.setComparator(0, new TurnCompare());
-        sorter.toggleSortOrder(0);
-        //sorter.setSortsOnUpdates(true);
+        sorter.toggleSortOrder(0); //set to sort by pre-determined initiative/round sorting
+        //sorter.setSortsOnUpdates(true);  re-sort any time the table is updated, no longer useful
+        //prevent sorting by another other column
         sorter.setSortable(1, false);
         sorter.setSortable(2, false);
         sorter.setSortable(0, false);
         encounterMembers.setRowSorter(sorter);
-        encounterMembers.getTableHeader().setReorderingAllowed(false);
-        encounterMembers.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        encounterMembers.getTableHeader().setReorderingAllowed(false); //prevent user from shuffling column order
+        encounterMembers.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); //allow only one row to be selected at a time
         encounterMembers.getSelectionModel().addListSelectionListener(new EncSelectionListener());
         encounterMembers.getColumnModel().getColumn(0).setPreferredWidth(250);
-        encounterMembers.setDefaultRenderer(String.class, new BoardTableCellRenderer());
+        encounterMembers.setDefaultRenderer(String.class, new BoardTableCellRenderer()); //use custom renderer to account for unique highlighting style
+
+        //set up scroller and encounter panel
         JScrollPane encScroller = new JScrollPane(encounterMembers, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         JPanel encPanel = new JPanel(new GridBagLayout());
 
@@ -316,6 +355,7 @@ public class MainWindow {
         encScroller.setPreferredSize(LIST_DIMENSION);
         blockPanel.setPreferredSize(LIST_DIMENSION);
 
+        //fill center panel (basically the entirety of the frame) by adding the the three separate panels
         c.gridx = 0;
         c.gridy=0;
         c.weightx=0;
@@ -332,7 +372,10 @@ public class MainWindow {
         c.gridwidth=GridBagConstraints.REMAINDER;
         centPanel.add(blockPanel,c);
 
+        //set up the notes area (set by participant on a per-encounter basis)
         notesArea.getDocument().addDocumentListener(new DocumentListener() {
+            //in all three cases, the listener saves whatever is stored in the document to the Participant's individual notes
+            //this way any time the user adds, removes, or changes anything in the notes area, the information is saved
             @Override
             public void insertUpdate(DocumentEvent e) {
                 if (getSelectedParticipant() != null) {
@@ -354,46 +397,57 @@ public class MainWindow {
                 }
             }
         });
-        notesArea.setEnabled(false);
+        notesArea.setEnabled(false); //disable notes area before any Participants are in the encounter because otherwise it won't work
 
+        //add the center panel and the menu bar to the frame
         frame.add(BorderLayout.CENTER, centPanel);
         frame.setJMenuBar(menuBar);
 
+        //pack it, size it, show it
         frame.pack();
         frame.setMinimumSize(frame.getSize());
-
         frame.setVisible(true);
     }
+
+    /**
+     * Updates and sorts the list of Participants in the encounter.
+     * This also includes renaming monsters with the same base-name so that they have numbers.
+     * This numbering makes differentiating between different monsters of the same kind easier.
+     * Also determines whether the Participant notes area is active.
+     */
 
     private void updateParticipants() {
         Collections.sort(participants);
 
-        //rename participants appropriately
-        ArrayList<Participant> participantsByNum = new ArrayList<Participant>();
+        //rename participants appropriately so that monsters don't have the same name
+        ArrayList<Participant> participantsByNum = new ArrayList<Participant>(); //use a new arraylist sorted by number
         participantsByNum.addAll(participants);
         participantsByNum.sort(new ParticipantNumberCompare());
 
         for (int i = 0; i < participantsByNum.size(); i++) {
             Participant part = participantsByNum.get(i);
-            if (!part.getFightableClass().equals(Player.class)) {
-                if (part.getNumber() == 0) {
+            if (!part.getFightableClass().equals(Player.class)) { //exclude players from the numbering, because they should already be uniquely named.
+                if (part.getNumber() == 0) { //get given number of participant, which defaults to 0 (no numbering needed)
                     int highestNum = 0;
-                    for (int j = 0; j < participantsByNum.size(); j++) {
+                    for (int j = 0; j < participantsByNum.size(); j++) { //count how many participants exist with the same name
                         Participant compare = participantsByNum.get(j);
                         if (j != i && part.getBaseName().equals(compare.getBaseName()) && compare.getNumber() > highestNum) {
                             highestNum = compare.getNumber();
                         }
                     }
-                    part.setNumber(highestNum + 1);
-                    part.setName(part.getBaseName() + " #" + part.getNumber());
+                    part.setNumber(highestNum + 1); //set the given participant to be numbered according to 1 higher than the highest numbered equivalent
+                    part.setName(part.getBaseName() + " #" + part.getNumber()); //name the participant according to their number
                 }
             }
         }
 
         //end renaming
+
+        //sort the actual participants list by turn comparison (sort by round, then by initiative)
         Collections.sort(participants, new TurnCompare());
         participantsToTable();
 
+        //if there are actually participants in the encounter, make it possible to write Participant notes
         if (participants.size() > 0) {
             notesArea.setEnabled(true);
         }
@@ -402,25 +456,39 @@ public class MainWindow {
         }
     }
 
+    /**
+     * Places the encounter's Participants (stored in an ArrayList) in the encounter table.
+     * Retrieves pertinent information (AC, HP, active round) as well to put in the columns after the first.
+     * Also revalidates the table so the information is actually displayed/
+     */
     private void participantsToTable() {
         for (int i = model.getRowCount() - 1; i >= 0; i--) {
-            model.removeRow(i);
+            model.removeRow(i); //get rid of all existing rows to make way for a new table
         }
 
         for (Participant part : participants) {
-            model.addRow(new Object[]{part, part.getAc(), part.getHpString(), part.getCurrentRound()});
+            model.addRow(new Object[]{part, part.getAc(), part.getHpString(), part.getCurrentRound()}); //refill the table with each participant
         }
-        encounterMembers.revalidate();
+        encounterMembers.revalidate(); //refresh the table to display the information
     }
 
+    /**
+     * Method for getting the participant selected by the user (or programatically) in the encounter table.
+     * @return the participant currently selected in the encounter table.
+     */
     private Participant getSelectedParticipant() {
-        if (encounterMembers.getSelectedRow() != -1) {
+        if (encounterMembers.getSelectedRow() != -1) { //check to make sure something is actually selected
             return (Participant) encounterMembers.getValueAt(encounterMembers.getSelectedRow(), 0);
         }
         else return null;
     }
 
 
+    /**
+     * Refreshes the initiative by sorting the Participants list in order of the TurnCompare comparator.
+     * This sorts Participants first in order of active round, then by order of initiative.
+     * Then, the participantsToTable() method is called.
+     */
     private void refreshInitiative() {
          //sorter.sort();
          //participants.sort(new InitiativeCompare());
@@ -428,11 +496,19 @@ public class MainWindow {
          participantsToTable();
     }
 
+    /**
+     * Refreshes the label in the control panel to reflect the current and maximum HP of the selected participant.
+     */
     private void refreshHpLabel() {
         Participant selected = getSelectedParticipant();
         currentHpLabel.setText(selected.getCurrentHp() + " / " + selected.getMaxHp());
     }
 
+    /**
+     * For every Participant in the encounter, the HP string is updated (i.e. x / y HP, where x is current HP and y is the max HP
+     * for that Participant). The HP column of the encounter table is updated to reflect this.
+     * This method is mainly to ensure that the table always displays the correct HP value for all Participants.
+     */
     private void updateAllHp() {
         for (int i = 0; i < encounterMembers.getRowCount(); i++) {
             Participant part = (Participant)encounterMembers.getValueAt(i,0);
@@ -441,6 +517,11 @@ public class MainWindow {
         }
     }
 
+    /**
+     * Updates the block panel to display the information of the currently selected Participant in the encounter table.
+     * Also, sets the initiative spinner to the correct value and enables the note area (if not already enabled) and
+     * puts the notes in appropriate to the given Participant.
+     */
     private void refreshBlockPanel() {
         try {
             Participant selected = getSelectedParticipant();
@@ -453,10 +534,17 @@ public class MainWindow {
             refreshHpLabel();
         }
         catch(NullPointerException npex) {
-            blockPanel.removeAll();
+            blockPanel.removeAll(); //clear out the block panel in the even that nothing is selected when it should be
         }
     }
 
+    /**
+     * Alter the current HP of the currently selected Participant on the encounter table.
+     * Mainly used for "heal" and "damage" buttons.
+     * Updates all necessary labels as well.
+     * This DOES NOT call the updateAllHp() method but instead updates the Participant's HP entry in the table alone.
+     * @param mod The amount by which the Participant's HP is to be changed.
+     */
     private void modHp(int mod) {
         Participant selected = getSelectedParticipant();
         selected.setCurrentHp(selected.getCurrentHp() + mod);
@@ -466,6 +554,10 @@ public class MainWindow {
         encounterMembers.revalidate();
     }
 
+    /**
+     * Listener for the monster library menu button. The class name is an artifact from when the program had only one library.
+     * Opens the library dialog and updates the participants if they have changed when the dialog is closed.
+     */
     public class LibButtonListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             PickMonster pm = new PickMonster();
@@ -484,6 +576,11 @@ public class MainWindow {
         }
     }
 
+    /**
+     * Listener for the spell library menu button.
+     * Opens the spell library dialog. As the spell library dialog is purely informational (never returns anything),
+     * this is all this listener does.
+     */
     public class SpellLibButtonListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             PickSpell ps = new PickSpell();
@@ -491,28 +588,36 @@ public class MainWindow {
         }
     }
 
+    /**
+     * Listener for the PC library menu button.
+     * Opens the PC library menu dialog. First makes a new list places all non-PC Participants into it, then
+     * opens the dialog with the current HashMap of players supplied to it.
+     * When the dialog is closed, retrieves all participants and puts them into the encounter.
+     * New Players added to the encounter are placed at the end of the round which is current for the Participant whose turn it
+     * currently is (i.e. is on the top of the initiative table, or row 0). Otherwise, they enter at Round 1.
+     */
     public class PcLibButtonListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
-            int range = participants.size();
+            int range = participants.size(); //defined for loop control
             ArrayList<Participant> newParticipants = new ArrayList<Participant>();
-            for (int i = 0; i < range; i ++) {
+            for (int i = 0; i < range; i ++) { //iterate over all existing participants
                 if (!participants.get(i).getFightableClass().equals(Player.class)) {
-                    newParticipants.add(participants.get(i));
+                    newParticipants.add(participants.get(i)); //add all non-Player Participants to the new list
                 }
             }
-            participants = newParticipants;
-            PickPlayer pp = new PickPlayer(addedPlayers);
-            pp.open(frame);
-            if (pp.getParticipants() != null) {
+            participants = newParticipants; //set the encoutner Participant list to the new Player-free list
+            PickPlayer pp = new PickPlayer(addedPlayers); //create the dialog class with the player HashMap supplied
+            pp.open(frame); //open the dialog
+            if (pp.getParticipants() != null) { //after it closes, check if there are any players available.
                 ArrayList<Participant> newParts = new ArrayList<Participant>();
                 newParts.addAll(pp.getParticipants());
                 for (Participant part: newParts) {
-                    if(!participants.isEmpty()) {
-                        part.setCurrentRound(participants.get(0).getCurrentRound());
+                    if(!participants.isEmpty()) { //if the encounter list isn't empty
+                        part.setCurrentRound(participants.get(0).getCurrentRound()); //set the new participants to come in at the end of the current round (top Participant's initiative round)
                     }
                 }
-                participants.addAll(newParts);
-                updateParticipants();
+                participants.addAll(newParts); //add all players from the player dialog to the encounter
+                updateParticipants(); //update all participants
             }
         }
     }
