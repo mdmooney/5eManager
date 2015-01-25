@@ -9,7 +9,16 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 
 /**
- * Created by Michael on 25/11/2014.
+ * Class for the main window of the 5e Manager.
+ * This is the main class for the manager and is run first when the application is run.
+ * MainWindow is repsonsible for displaying information about the current encounter, including the list of active
+ * Participants (chiefly, players and monsters) as well as their initiative order and HP.
+ * It also allows focus to be gained on any of these Participants and includes a block panel to display more detailed
+ * information.
+ * A control panel is available for actions specific to Participants (including altering initiative and HP) and advancing
+ * to the next round.
+ *
+ * Additionally, MainWindow includes a MenuBar to provide access to the various other libraries and generators of the Manager.
  */
 public class MainWindow {
     private JFrame frame;
@@ -459,7 +468,7 @@ public class MainWindow {
     /**
      * Places the encounter's Participants (stored in an ArrayList) in the encounter table.
      * Retrieves pertinent information (AC, HP, active round) as well to put in the columns after the first.
-     * Also revalidates the table so the information is actually displayed/
+     * Also revalidates the table so the information is actually displayed
      */
     private void participantsToTable() {
         for (int i = model.getRowCount() - 1; i >= 0; i--) {
@@ -622,12 +631,21 @@ public class MainWindow {
         }
     }
 
+    /**
+     * Comparator to compare Participants by their initiative in a given encounter.
+     * This is used as a secondary comparator, since Participants are sorted by turn first and initiative second.
+     */
+
     public class InitiativeCompare implements Comparator<Participant> {
         public int compare(Participant pOne, Participant pTwo) {
             return Integer.compare(pOne.getInitiative(), pTwo.getInitiative()) * -1;
         }
     }
 
+    /**
+     * Comparator to compare Participants by their current active round.
+     * If two Participants are in the same Round, then the are sorted instead with an InitiativeCompare comparator.
+     */
     public class TurnCompare implements Comparator<Participant> {
         public int compare(Participant pOne, Participant pTwo) {
             if (pOne.getCurrentRound() >pTwo.getCurrentRound()) return 1;
@@ -636,6 +654,11 @@ public class MainWindow {
         }
     }
 
+    /**
+     * Comparator to compare Participants by their numbers.
+     * The number comparison applies only if two Participants being compared have the same base name.
+     * This is used for renaming and numbering Participants.
+     */
     public class ParticipantNumberCompare implements Comparator<Participant> {
         public int compare(Participant pOne, Participant pTwo) {
             if (pOne.getBaseName().compareTo(pTwo.getBaseName()) == 0) {
@@ -645,6 +668,10 @@ public class MainWindow {
         }
     }
 
+    /**
+     * A listener for selecting rows of the encounter table.
+     * Refreshes the block panel to reflect the selected Participant.
+     */
     class EncSelectionListener implements ListSelectionListener {
         public void valueChanged(ListSelectionEvent lse) {
             noInitRefresh = true;
@@ -653,20 +680,29 @@ public class MainWindow {
         }
     }
 
+    /**
+     * Listener for the "Next Turn" button.
+     * Updates the current round and resorts Participants accordingly.
+     */
     class NextTurnListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             if (model.getRowCount() > 0) {
-                Participant temp = participants.get(0);
-                temp.setCurrentRound(temp.getCurrentRound()+1);
-                participants.remove(temp);
-                participants.sort(new TurnCompare());
-                participants.add(temp);
+                Participant temp = participants.get(0); //store the current active Participant
+                temp.setCurrentRound(temp.getCurrentRound()+1); //advance the active Participant to the next round
+                participants.remove(temp); //take the active Participant out of the list
+                participants.sort(new TurnCompare()); //resort the Participants
+                participants.add(temp); //add the previously active Participants back in
                 //sorter.sort();
                 participantsToTable();
             }
         }
     }
 
+    /**
+     * A renderer used in place of the default for the encounter table.
+     * Essentially used for particular highlighting demands.
+     * At this point, it is used only to highlight Participants at 0 HP or less in black.
+     */
     class BoardTableCellRenderer extends DefaultTableCellRenderer {
 
         private static final long serialVersionUID = 1L;
@@ -680,12 +716,6 @@ public class MainWindow {
             Participant part = (Participant) table.getModel().getValueAt(row, 0);
             final Color ALT_BG = new Color(230, 230, 230);
             final Color SELECT_BG = new Color(57, 105, 138);
-
-            String s = "";
-
-            if (part != null && valueAt instanceof Participant) {
-                s = valueAt.toString();
-            }
 
             if (row == table.getSelectedRow()) {
                 c.setForeground(Color.WHITE);

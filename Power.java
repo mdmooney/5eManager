@@ -1,9 +1,10 @@
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 /**
+ * Class for "powers," which include virtually any sort of action or ability a Participant can have that would
+ * distinguish it from other Participants. Powers include things like Attacks, Traits, etc. which are covered by
+ * subclasses of the Power class.
+ *
  * Created by Michael on 13/11/2014.
  */
 
