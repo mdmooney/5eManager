@@ -339,6 +339,7 @@ public class MainWindow {
         //prevent sorting by another other column
         sorter.setSortable(1, false);
         sorter.setSortable(2, false);
+        sorter.setSortable(3, false);
         sorter.setSortable(0, false);
         encounterMembers.setRowSorter(sorter);
         encounterMembers.getTableHeader().setReorderingAllowed(false); //prevent user from shuffling column order
@@ -499,9 +500,7 @@ public class MainWindow {
      * Then, the participantsToTable() method is called.
      */
     private void refreshInitiative() {
-         //sorter.sort();
-         //participants.sort(new InitiativeCompare());
-        participants.sort(new TurnCompare());
+         participants.sort(new TurnCompare());
          participantsToTable();
     }
 
@@ -692,7 +691,6 @@ public class MainWindow {
                 participants.remove(temp); //take the active Participant out of the list
                 participants.sort(new TurnCompare()); //resort the Participants
                 participants.add(temp); //add the previously active Participants back in
-                //sorter.sort();
                 participantsToTable();
             }
         }
