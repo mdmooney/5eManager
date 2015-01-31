@@ -12,7 +12,6 @@ import java.awt.*;
 @XmlRootElement(name="spellblock")
 @XmlSeeAlso(Power.class)
 @XmlAccessorType(XmlAccessType.FIELD)
-//@XmlType(propOrder = {"name", "level", "school", "castTime", "range", "components", "duration", "description", "ritual"})
 
 public class Spell extends Power implements LibraryMember {
     private String school;
@@ -30,53 +29,53 @@ public class Spell extends Power implements LibraryMember {
     }
     public Spell(String name, String desc, String school, String castTime, String range, String components, String duration, int level, boolean ritual) {
         super(name, desc);
-        this.school = pruneText(school);
-        this.castTime = pruneText(castTime);
-        this.range = pruneText(range);
-        this.components = pruneText(components);
-        this.duration = pruneText(duration);
+        this.school = TextFormat.pruneText(school);
+        this.castTime = TextFormat.pruneText(castTime);
+        this.range = TextFormat.pruneText(range);
+        this.components = TextFormat.pruneText(components);
+        this.duration = TextFormat.pruneText(duration);
         this.level = level;
         this.ritual = ritual;
     }
 
     public String getSchool() {
-        return pruneText(school);
+        return TextFormat.pruneText(school);
     }
 
     public void setSchool(String school) {
-        this.school = pruneText(school);
+        this.school = TextFormat.pruneText(school);
     }
 
     public String getCastTime() {
-        return pruneText(castTime);
+        return TextFormat.pruneText(castTime);
     }
 
     public void setCastTime(String castTime) {
-        this.castTime = pruneText(castTime);
+        this.castTime = TextFormat.pruneText(castTime);
     }
 
     public String getRange() {
-        return pruneText(range);
+        return TextFormat.pruneText(range);
     }
 
     public void setRange(String range) {
-        this.range = pruneText(range);
+        this.range = TextFormat.pruneText(range);
     }
 
     public String getComponents() {
-        return pruneText(components);
+        return TextFormat.pruneText(components);
     }
 
     public void setComponents(String components) {
-        this.components = pruneText(components);
+        this.components = TextFormat.pruneText(components);
     }
 
     public String getDuration() {
-        return pruneText(duration);
+        return TextFormat.pruneText(duration);
     }
 
     public void setDuration(String duration) {
-        this.duration = pruneText(duration);
+        this.duration = TextFormat.pruneText(duration);
     }
 
     public int getLevel() {

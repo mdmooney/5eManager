@@ -6,6 +6,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 /**
+ * Window in which actions are edited. Essentially a fillable form for defining all pertinent attributes of a new Action,
+ * Creates a new Action when the "Save Data" button is pressed which can be used by anything calling this window (i.e.
+ * a Monster for whom the Action is being created).
  * Created by Michael on 19/11/2014.
  */
 public class ActionEditWindow extends PowerEditWindow  {
@@ -20,12 +23,24 @@ public class ActionEditWindow extends PowerEditWindow  {
     private JComboBox comboTypeA = new JComboBox();
     private JComboBox comboTypeB = new JComboBox();
 
+    /**
+     * Constructor for which no existing Action is supplied.
+     * Sets the window title to "New Action" (because a brand-new action is being created).
+     * @param parent The window that acts as a parent to this one. Mainly for modality purposes.
+     */
     public ActionEditWindow(JDialog parent) {
         super(parent);
         windowTitle = "New Action";
         setPower(this.action);
     }
 
+    /**
+     * Constructor for which an existing Action is supplied ("Edit Mode").
+     * Sets the window title to "Edit Action".
+     * Then, sets the Window's Action to effectively be a copy of the Action to be edited.
+     * @param parent The window that acts as a parent to this one. Mainly for modality purposes.
+     * @param action The action to be edited.
+     */
     public ActionEditWindow(JDialog parent, Action action) {
         super(parent);
         windowTitle = "Edit Action";
@@ -43,10 +58,18 @@ public class ActionEditWindow extends PowerEditWindow  {
         this.getAction().setDescription(action.getDescription());
     }
 
+    /**
+     * Returns the Action edited/created by this window.
+     * @return The Action edited/created by this window.
+     */
     public Action getAction() {
         return this.action;
     }
 
+    /**
+     * Sets up the Swing GUI specific to the Action Edit Window.
+     * Creates all text fields, spinners, boxes, etc.
+     */
     protected void setupGui() {
 
         atkCheck = new JCheckBox();
@@ -91,6 +114,11 @@ public class ActionEditWindow extends PowerEditWindow  {
         super.setupGui();
     }
 
+    /**
+     * Lays out the GUI specific to the Action Edit Window.
+     * Basically just follows the layout of the generic Power Edit Window, but also includes code for properly filling fields
+     * specific to Actions when the Window is editing an Action, rather than creating a new one.
+     */
     protected void layoutGui() {
         super.layoutGui();
 
@@ -115,6 +143,12 @@ public class ActionEditWindow extends PowerEditWindow  {
         }
     }
 
+    /**
+     * Returns the "Insert Panel," the JPanel placed in between Swing elements of the generic Power Edit Window.
+     * In this case, this includes all gui elements specific to the Action Edit Window, including check boxes to determine
+     * Attack, Reaction, or generic Action, and attack bonuses, combo boxes for Attack types, and a few small things (like labels).
+     * @return The panel to be inserted, with GUI elements that are specific to the Action Edit Window.
+     */
     protected JPanel getInsertPanel() {
         JPanel actPanel = new JPanel(new GridBagLayout());
         GridBagConstraints cb = new GridBagConstraints();
@@ -142,14 +176,15 @@ public class ActionEditWindow extends PowerEditWindow  {
         cb.gridx++;
         cb.weightx=1;
         actPanel.add(atkBonus, cb);
-//        c.gridy=1;
-//        c.gridx=0;
-//        c.fill=GridBagConstraints.HORIZONTAL;
-//        c.gridwidth=GridBagConstraints.REMAINDER;
-//        editPanel.add(actPanel, c);
         return actPanel;
     }
 
+    /**
+     * "Saves" the created/edited Action. Effectively this creates a new Action by checking what type it is (generic, Attack,
+     * or Reaction), and creates an object of the appropriate type by passing the field data to the appropriate constructor.
+     * After this is done, the dialog is disposed.
+     * This saving is not permitted unless a name is provided for the nascent Action. If this is attempted, an error message is displayed in a dialog.
+     */
     void saveData() {
         if (!name.getText().equals("")) {
             if (atkCheck.isSelected()) {
@@ -166,6 +201,9 @@ public class ActionEditWindow extends PowerEditWindow  {
         else JOptionPane.showMessageDialog(dialog, "At a minimum, you must enter a name to save an action.");
     }
 
+    /**
+     * Nullifies the power by setting the action and the generic power (usually a reference to the action) to null.
+     */
     protected void nullPower() {
         this.action = null;
         this.power = null;

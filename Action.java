@@ -11,8 +11,16 @@ import java.util.Collections;
 @XmlRootElement(name="action")
 public class Action extends Power  {
 
+    /**
+     * Default constructor sets no values for attributes.
+     */
     public Action() {}
 
+    /**
+     * Same as the equivalent constructor for the Power class; in fact, this just calls the super constructor method.
+     * @param name Name of the Action
+     * @param desc Description of the Action
+     */
     public Action(String name, String desc) {
         super(name, desc);
     }

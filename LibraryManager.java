@@ -68,11 +68,19 @@ public class LibraryManager {
     }
 
 
+    /**
+     * Public method for adding to the library. Essentially calls the write method and then updates the database files.
+     * @param newObj The new object (instance of whatever reference class is used by the library) to be written to the library.
+     */
     public void addToLibrary(LibraryMember newObj) {
         writeToLibrary(newObj);
         updateDbFile();
     }
 
+    /**
+     * Public method for removing something from the library. Essentially calls the deletion method and then updates the database files.
+     * @param delIndices The indices (positions) in the libraries of entries to be deleted (i.e. not included in the new file)
+     */
     public void removeFromLibrary(ArrayList<Integer> delIndices) {
         deleteFromLibrary(delIndices);
         updateDbFile();
@@ -363,6 +371,7 @@ public class LibraryManager {
 
         //requests garbage collection
         System.gc();
+
         try {
             Files.deleteIfExists(dbFile.toPath());
         }

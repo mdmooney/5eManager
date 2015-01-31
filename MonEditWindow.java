@@ -330,7 +330,7 @@ public class MonEditWindow {
         c.gridy++;
         editPanel.add(new JLabel("Languages: "), c);
         c.gridy++;
-        c.weighty=1; //todo: move this constraint assignment to just above the last component as the panel gets bigger
+        c.weighty=1;
         editPanel.add(langField,c);
 
         //set up power panel
