@@ -14,6 +14,13 @@ public class LegendaryAction extends Action {
     private int cost;
 
     /**
+     * Empty constructor. Sets no attributes.
+     * Primarily to ensure that unmarshalling works correctly.
+     */
+    public LegendaryAction() {
+        super();
+    }
+    /**
      * Constructor that creates a Legendary Action but does not define a cost.
      * Defaults the cost of any action to 1 (by far the most common).
      * @param name The name of the Legendary Action.
